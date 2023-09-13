@@ -102,7 +102,7 @@ def main():
             print(f"{bcolors.HEADER}Checking {GCM} {scen}{bcolors.ENDC}")
             for var in (pbar := tqdm(variables)):
                 pbar.set_description(f"Processing {var}")
-                path_in = f"./PGW4ERA/{scen}/{var}/{GCM}/"
+                path_in = f"./{scen}/{var}/{GCM}/"
                 finlesin_var = sorted(glob(f"{path_in}/{var}_*"))
                 # print(finlesin_var)
                 if finlesin_var:
