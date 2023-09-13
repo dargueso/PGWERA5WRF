@@ -11,8 +11,8 @@ Create boundary conditions from ERA5+PGW for WRF.
 
 # CMIP6 Models
 
-|Global Model|Downloaded|Completeness|Scenarios|Exp (realization)|Notes
-|---|---|---|---|---|---
+|Global Model|Downloaded|Completeness|Scenarios|Exp (realization)|
+|---|---|---|---|---|
 |ACCESS-CM2|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
 |ACCESS-ESM1-5|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
 |CanESM5|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
