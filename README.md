@@ -13,36 +13,36 @@ Create boundary conditions from ERA5+PGW for WRF.
 
 |Global Model|Downloaded|Completeness|Scenarios|Exp (realization)|
 |---|---|---|---|---|
-|ACCESS-CM2|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|ACCESS-ESM1-5|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|CanESM5|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|CMCC-CM2-SR5|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|CMCC-ESM2|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|CNRM-CM6-1|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|CNRM-CM6-1-HR|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|CNRM-ESM2-1|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|EC-Earth3|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|EC-Earth3-CC|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|EC-Earth3-Veg|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|EC-Earth3-Veg-LR|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|FGOALS-f3-L|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|GFDL-ESM4|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|GISS-E2-1-G|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|GISS-E2-1-H|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|HadGEM3-GC31-LL|Downloaded|Complete|"historical| ssp585"|r1i1p1f3|
-|HadGEM3-GC31-MM|Downloaded|Complete|"historical| ssp585"|r1i1p1f3|
-|INM-CM4-8|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|INM-CM5-0|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|IPSL-CM6A-LR|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|KACE-1-0-G|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|KIOST-ESM|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|MCM-UA-1-0|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|MIROC-ES2L|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
-|MIROC6|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|MPI-ESM1-2-HR|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|MPI-ESM1-2-LR|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|MRI-ESM2-0|Downloaded|Complete|"historical| ssp585"|r1i1p1f1|
-|UKESM1-0-LL|Downloaded|Complete|"historical| ssp585"|r1i1p1f2|
+|ACCESS-CM2|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|ACCESS-ESM1-5|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|CanESM5|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|CMCC-CM2-SR5|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|CMCC-ESM2|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|CNRM-CM6-1|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|CNRM-CM6-1-HR|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|CNRM-ESM2-1|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|EC-Earth3|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|EC-Earth3-CC|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|EC-Earth3-Veg|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|EC-Earth3-Veg-LR|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|FGOALS-f3-L|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|GFDL-ESM4|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|GISS-E2-1-G|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|GISS-E2-1-H|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|HadGEM3-GC31-LL|Downloaded|Complete|historical, ssp585|r1i1p1f3|
+|HadGEM3-GC31-MM|Downloaded|Complete|historical, ssp585|r1i1p1f3|
+|INM-CM4-8|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|INM-CM5-0|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|IPSL-CM6A-LR|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|KACE-1-0-G|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|KIOST-ESM|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|MCM-UA-1-0|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|MIROC-ES2L|Downloaded|Complete|historical, ssp585|r1i1p1f2|
+|MIROC6|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|MPI-ESM1-2-HR|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|MPI-ESM1-2-LR|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|MRI-ESM2-0|Downloaded|Complete|historical, ssp585|r1i1p1f1|
+|UKESM1-0-LL|Downloaded|Complete|historical, ssp585|r1i1p1f2|
 
 # Authors
 
