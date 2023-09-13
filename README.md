@@ -6,7 +6,7 @@ Create boundary conditions from ERA5+PGW for WRF.
 
 ## Download and prepare CMIP6 data
 
-1. Data can be downloaded from [ESGF][https://esgf-node.llnl.gov/projects/esgf-llnl/], where login is required. The best option is to use Globus - the use of wget scripts is not very straight forward. You need to impose a series of conditions to get the monthly data that is required by WRF. First it must have both historical and ssp585 (or the desired scenario), then select monthly data, and finally the variables required (hur, hurs, ps, psl, ta, tas, tos, ts, ua, uas, va, vas, zg). You can also select the variant label. Check here for a complete list of models that were downloaded. 
+1. Data can be downloaded from [ESGF][https://esgf-node.llnl.gov/projects/esgf-llnl/], where login is required. The best option is to use Globus - the use of wget scripts is not very straight forward. You need to impose a series of conditions to get the monthly data that is required by WRF. First it must have both historical and ssp585 (or the desired scenario), then select monthly data, and finally the variables required (hur, hurs, ps, psl, ta, tas, tos, ts, ua, uas, va, vas, zg). You can also select the variant label. Check [CMIP6 Models][# CMIP6 Models] for a complete list of models that were downloaded. 
 
 
 # CMIP6 Models
