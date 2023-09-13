@@ -27,6 +27,19 @@ Note: the common ERA5 grid is created from a sample era5 file using:
 
 1. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). This script may be edited to select the periods and the scenarios to be processed. It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories as arguments. Finally you can process one variable at a time by specifying it as an argument. 
 
+Note: the cdo interpolation command wihtin this script was giving an error  "Unsupported file structure" possibly because of the time dimension, or other variables not supported. The new version of the script fixes this.
+
+Note 2: Once the CC files are created and regridded, MCM-UA-1-0 gives some error because it has some extra variables that need to be removed
+Example:
+for file in $(ls *_MCM-UA*.nc); do ncks -x -v areacella,height ${file} aux.nc; mv aux.nc ${file}; done
+
+Note 3: Some GCMs provide data up to year 2300 or 2400, which create some problems. We have removed those years and process only until 2100.
+
+2. Then, we create the definitive netCDF files with the climate change signal using [Create_CMIP6_AnnualCycleChange_ENSMEAN.py](Create_CMIP6_AnnualCycleChange_ENSMEAN.py)
+
+    or manually with cdo:
+
+        cdo ensmean ts_* ts_CC_signal_ssp585_2076-2100_1990-2014.nc
 
 # CMIP6 Models
 
