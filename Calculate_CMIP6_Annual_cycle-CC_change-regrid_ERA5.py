@@ -28,6 +28,7 @@ import os, argparse
 from pathlib import Path
 from tqdm.auto import tqdm
 
+
 class bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -43,8 +44,8 @@ class bcolors:
 #####################################################################
 #####################################################################
 
-def parse_args():
 
+def parse_args():
     parser = argparse.ArgumentParser(
         description="PURPOSE: Create files with annual cycle of changes PGW"
     )
@@ -60,22 +61,33 @@ def parse_args():
     )
 
     # variable(s) to process
-    parser.add_argument('-v', '--var_names', type=str,
-            help='Variable names (e.g. ta) to process. Separate ' +
-            'multiple variable names with "," (e.g. tas,ta). Default is ' +
-            'to process all required variables ta,hus,ua,va,zg,hurs,tas,ps,ts',
-            default='ta,hus,ua,va,zg,hurs,tas,ps,ts,uas')
+    parser.add_argument(
+        "-v",
+        "--var_names",
+        type=str,
+        help="Variable names (e.g. ta) to process. Separate "
+        + 'multiple variable names with "," (e.g. tas,ta). Default is '
+        + "to process all required variables ta,hus,ua,va,zg,hurs,tas,ps,ts",
+        default="hurs,tas,ps,ts,vas,uas,psl,ta,hus,ua,va,zg",
+    )
 
     # input directory
-    parser.add_argument('-i', '--input_dir', type=str,
-                help='Directory with input GCM delta files on ERA5 grid',
-                default =  "/vg5/dargueso/BDY_DATA/CMIP6/")
-    
+    parser.add_argument(
+        "-i",
+        "--input_dir",
+        type=str,
+        help="Directory with input GCM delta files on ERA5 grid",
+        default="./",
+    )
+
     # output directory
-    parser.add_argument('-o', '--output_dir', type=str,
-                help='Directory where the GCM ENSEMBLE delta files ' +
-                ' should be stored.',
-                default = "/vg5/dargueso/BDY_DATA/CMIP6/")
+    parser.add_argument(
+        "-o",
+        "--output_dir",
+        type=str,
+        help="Directory where the GCM ENSEMBLE delta files " + " should be stored.",
+        default="./",
+    )
 
     args = parser.parse_args()
     return args
@@ -93,7 +105,7 @@ if models_str is None:
 else:
     models = args.models.split(",")
 
-variables = args.var_names.split(',')
+variables = args.var_names.split(",")
 idir = args.input_dir
 odir = args.output_dir
 experiments = ["historical", "ssp585"]
@@ -104,34 +116,52 @@ acycle_odir = f"{odir}/annual_cycle"
 deltas_odir = f"{odir}/deltas"
 regrid_era5 = f"{odir}/regrid_ERA5"
 
-plvs=np.asarray([100000, 92500, 85000, 70000, 60000, 50000, 40000, 30000, 25000,
-    20000, 15000, 10000, 7000, 5000, 3000, 2000, 1000, 500, 100 ])
+plvs = np.asarray(
+    [
+        100000,
+        92500,
+        85000,
+        70000,
+        60000,
+        50000,
+        40000,
+        30000,
+        25000,
+        20000,
+        15000,
+        10000,
+        7000,
+        5000,
+        3000,
+        2000,
+        1000,
+        500,
+        100,
+    ]
+)
+
 
 def main():
-
     print(f"{bcolors.HEADER}Creating Annual cycles and delta files{bcolors.ENDC}")
     Path(acycle_odir).mkdir(exist_ok=True, parents=True)
     Path(deltas_odir).mkdir(exist_ok=True, parents=True)
     Path(regrid_era5).mkdir(exist_ok=True, parents=True)
-  
-    
 
-    for GCM in (tqdm(models)):
-        #pbar.set_description(f"{GCM}")
+    for GCM in tqdm(models):
+        # pbar.set_description(f"{GCM}")
 
         for vn, varname in enumerate(variables):
-
             for exp in experiments:
-
                 syear = syear_exp[exp]
                 eyear = eyear_exp[exp]
 
-                calculate_annual_cycle(GCM,varname,exp,syear,eyear,idir,acycle_odir)
-        
-        
-            calculate_CC_signal(GCM,varname,acycle_odir,deltas_odir)
+                calculate_annual_cycle(
+                    GCM, varname, exp, syear, eyear, idir, acycle_odir
+                )
 
-            #REGRID TO ERA5
+            calculate_CC_signal(GCM, varname, acycle_odir, deltas_odir)
+
+            # REGRID TO ERA5
             delta_file = f"{deltas_odir}/{GCM}/{varname}_delta.nc"
             regrid_file = f"{regrid_era5}/{varname}_{GCM}_delta.nc"
             if not os.path.isfile(regrid_file):
@@ -140,30 +170,26 @@ def main():
                         f"cdo -remapbil,era5_grid {delta_file} {regrid_file}",
                         shell=True,
                     )
-                    print(f"{bcolors.OKGREEN}Regridded delta to ERA5: {GCM} {varname}{bcolors.ENDC}")
+                    print(
+                        f"{bcolors.OKGREEN}Regridded delta to ERA5: {GCM} {varname}{bcolors.ENDC}"
+                    )
                 except Exception:
                     raise SystemExit(
                         f"{bcolors.ERROR}ERROR: Could not regrid to ERA5 grid: {GCM} {varname} {bcolors.ENDC}"
                     )
 
 
-
-
-
-
 ###########################################################
 ###########################################################
-def calculate_annual_cycle(GCM, varname,exp,syear,eyear,idir,odir):
+def calculate_annual_cycle(GCM, varname, exp, syear, eyear, idir, odir):
     """For a given model, member and variable,
     Calculate annual cycle"""
-
-
 
     filenames_all = sorted(glob(f"{idir}/{exp}/{varname}/{GCM}/{varname}*nc"))
     finall = xr.open_mfdataset(filenames_all, concat_dim="time", combine="nested")
 
-    if finall.time.dtype=='O':
-        finall['time']=finall['time'].astype("datetime64[ns]")
+    if finall.time.dtype == "O":
+        finall["time"] = finall["time"].astype("datetime64[ns]")
 
     Path(f"{odir}/{GCM}/").mkdir(exist_ok=True, parents=True)
 
@@ -187,7 +213,9 @@ def calculate_annual_cycle(GCM, varname,exp,syear,eyear,idir,odir):
 
         fin_p_mm = fin_p.groupby("time.month").mean("time")
         fin_p_mm.to_netcdf(ofname)
-        print(f"{bcolors.OKGREEN}Created annual cycle file for {GCM} {varname} {exp}{bcolors.ENDC}")
+        print(
+            f"{bcolors.OKGREEN}Created annual cycle file for {GCM} {varname} {exp}{bcolors.ENDC}"
+        )
     else:
         print(f"{bcolors.OKCYAN}{exp} {varname} {GCM} Already processed{bcolors.ENDC}")
 
@@ -196,7 +224,7 @@ def calculate_annual_cycle(GCM, varname,exp,syear,eyear,idir,odir):
 
 ###########################################################
 ###########################################################
-def calculate_CC_signal(GCM, varname,idir,odir):
+def calculate_CC_signal(GCM, varname, idir, odir):
     """From present and future annual cycle
     calculate CC signal for every month"""
 
@@ -204,10 +232,9 @@ def calculate_CC_signal(GCM, varname,idir,odir):
     Path(f"{odir}/{GCM}/").mkdir(exist_ok=True, parents=True)
 
     if not os.path.isfile(ofname):
-
         fin_p = xr.open_dataset(f"{idir}/{GCM}/{varname}_historical.nc")
         fin_f = xr.open_dataset(f"{idir}/{GCM}/{varname}_ssp585.nc")
-        #import pdb; pdb.set_trace()  # fmt: skip
+        # import pdb; pdb.set_trace()  # fmt: skip
         fin_d = fin_f - fin_p
 
         if "plev_bnds" in fin_d.keys():
@@ -221,18 +248,18 @@ def calculate_CC_signal(GCM, varname,idir,odir):
 
         foutclean = fin_d.rename({"month": "time"})
         foutclean = foutclean.assign_coords({"time": datelist})
-        foutclean.to_netcdf(ofname,
+        foutclean.to_netcdf(
+            ofname,
             unlimited_dims="time",
         )
-
 
         fin_p.close()
         fin_f.close()
         print(f"{bcolors.OKGREEN}Created delta file for {GCM} {varname}{bcolors.ENDC}")
     else:
-        print(f"{bcolors.OKCYAN}CC file {varname} {GCM} Already processed{bcolors.ENDC}")
-
-
+        print(
+            f"{bcolors.OKCYAN}CC file {varname} {GCM} Already processed{bcolors.ENDC}"
+        )
 
 
 ###############################################################################
