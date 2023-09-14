@@ -15,7 +15,7 @@ In this section, we download available CMIP6 data at monthly frequency for the p
 
 3. Check that all models has a complete set of data ready for PGW processing using [check_completeness_CMIP6_PGW.py](check_completeness_CMIP6_PGW.py)
 
-4. Create a list of the models to process. For example within historical: `ls -d *>list_CMIP6.txt`
+4. Create a list of the models to process. For example within historical and any of the variable folders: `ls -d *>list_CMIP6.txt`
 
 ## Create monthly annual cycles and CC from CMIP6 models
 
