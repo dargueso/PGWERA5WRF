@@ -17,9 +17,9 @@ In this section, we download available CMIP6 data at monthly frequency for the p
 
 4. Create a list of the models to process. For example within historical and any of the variable folders: `ls -d *>list_CMIP6.txt`
 
-## Create monthly annual cycles and CC from CMIP6 models
+## Create monthly annual cycles and CC from CMIP6 models, interpolate to ERA5 grid and to pressure levels.
 
-In this section, we calculate means for every calendar months to create files with an "annual cycle" (also called "seasonal cycles"). Then we will make the difference between future and present files for the requested periods to calculate the climate change signal (delta) for every GCM, variable and calendar month. We will create the corresponding netCDF files (one for each GCM and variable). Finally, we will interpolate these netCDF files from the original GCM grid to a common ERA5 grid ([era5_grid](era5_grid)) so that they can be merged together and added to ERA5.
+In this section, we calculate means for every calendar months to create files with an "annual cycle" (also called "seasonal cycles"). Then we will make the difference between future and present files for the requested periods to calculate the climate change signal (delta) for every GCM, variable and calendar month. We will create the corresponding netCDF files (one for each GCM and variable). Finally, we will interpolate these netCDF files from the original GCM grid to a common ERA5 grid ([era5_grid](era5_grid)) and to ERA5 pressure levels so that they can be merged together and added to ERA5.
 
 Note: the common ERA5 grid is created from a sample era5 file using:
 
@@ -27,19 +27,23 @@ Note: the common ERA5 grid is created from a sample era5 file using:
 
 1. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). This script may be edited to select the periods and the scenarios to be processed. It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories as arguments. Finally you can process one variable at a time by specifying it as an argument. 
 
-Note: the cdo interpolation command wihtin this script was giving an error  "Unsupported file structure" possibly because of the time dimension, or other variables not supported. The new version of the script fixes this.
-
-Note 2: Once the CC files are created and regridded, MCM-UA-1-0 gives some error because it has some extra variables that need to be removed
-Example:
-for file in $(ls *_MCM-UA*.nc); do ncks -x -v areacella,height ${file} aux.nc; mv aux.nc ${file}; done
-
-Note 3: Some GCMs provide data up to year 2300 or 2400, which create some problems. We have removed those years and process only until 2100.
+Note: Some GCMs provide data up to year 2300 or 2400, which create some problems. We have removed those years and process only until 2100.
 
 2. Then, we create the definitive netCDF files with the climate change signal using [Create_CMIP6_AnnualCycleChange_ENSMEAN.py](Create_CMIP6_AnnualCycleChange_ENSMEAN.py)
 
-    or manually with cdo:
+or manually with cdo:
 
         cdo ensmean ts_* ts_CC_signal_ssp585_2076-2100_1990-2014.nc
+
+3. Finally, interpolate the ensemble means to ERA5 pressure levels using [Interpolate_CMIP6_Annual_cycle-CC_pinterp.py](Interpolate_CMIP6_Annual_cycle-CC_pinterp.py)
+
+This script needs a sample ERA5 netcdf data to get the plevs. We created it from a grib file downloaded from ECMWF and converted to netCDF using [grib2netcdf.py](grib2netcdf.py), from which the pressure levels are then extracted using:
+
+        ncks -v plev era5_daily_pl_20120101.nc era5_plev.nc
+
+The resulting file is provided here [era5_plev.nc](era5_plev.nc)
+
+ 
 
 # CMIP6 Models
 
