@@ -75,7 +75,7 @@ def parse_args():
         "--input_dir",
         type=str,
         help="Directory with input GCM delta files on ERA5 grid",
-        default="/vg5/dargueso/BDY_DATA/CMIP6/regrid_ERA5/",
+        default="./regrid_ERA5/",
     )
 
     # corrected_plevs directory
@@ -84,7 +84,7 @@ def parse_args():
         "--corrected_plevs_dir",
         type=str,
         help="Directory where the GCM delta files with corrected plevs should be stored.",
-        default="/vg5/dargueso/BDY_DATA/CMIP6/regrid_ERA5/corrected_plevs/",
+        default="./regrid_ERA5/corrected_plevs/",
     )
 
     # output directory
@@ -93,7 +93,7 @@ def parse_args():
         "--output_dir",
         type=str,
         help="Directory where the GCM ENSEMBLE delta files should be stored.",
-        default="/vg5/dargueso/BDY_DATA/CMIP6/regrid_ERA5/",
+        default="./regrid_ERA5/",
     )
     args = parser.parse_args()
     return args
