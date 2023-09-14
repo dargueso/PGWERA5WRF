@@ -4,11 +4,22 @@ Create boundary conditions from ERA5+PGW for WRF.
 
 # Instructions
 
+## Download ERA5
+
+1. Download ERA5 data using [Get_ERA5_ECMWF_plevs.py](Get_ERA5_ECMWF_plevs.py) and [Get_ERA5_ECMWF_sfc.py](Get_ERA5_ECMWF_sfc.py) scripts (you need to install and set up the cdsapi: https://cds.climate.copernicus.eu/api-how-to)
+   
+2. Convert original ERA5 in GRIB into NetCDF. Use [grib2netcdf.py](grib2netcdf.py). Depending on the cdo version, the outputs may change (variable names, order of pressure levels). This can be adapted later on when merging ERA5 and CMIP6 data.
+
 ## Download and organize CMIP6 data
 
 In this section, we download available CMIP6 data at monthly frequency for the periods and the scenarios requested. We also organize the files into folders and check that all the variables are available for all models and over the period requested.
 
-1. Data can be downloaded from [ESGF](https://esgf-node.llnl.gov/projects/esgf-llnl/), where login is required. The best option is to use Globus - the use of wget scripts is not very straight forward. You need to impose a series of conditions to get the monthly data that is required by WRF. First it must have both historical and ssp585 (or the desired scenario), then select monthly data, and finally the variables required (hur, hurs, ps, psl, ta, tas, tos, ts, ua, uas, va, vas, zg). You can also select the variant label. Check [CMIP6 Models](#cmip6-models) for a complete list of models that were downloaded. 
+1. Data can be downloaded from [ESGF](https://esgf-node.llnl.gov/projects/esgf-llnl/), where login is required. The best option is to use Globus - the use of wget scripts is not very straight forward. You need to impose a series of conditions to get the monthly data that is required by WRF. First it must have both historical and ssp585 (or the desired scenario), then select monthly data, and finally the variables required (hus, hurs, ps, psl, ta, tas, tos, ts, ua, uas, va, vas, zg). You can also select the variant label. Check [CMIP6 Models](#cmip6-models) for a complete list of models that were downloaded. 
+
+ - Only monthly means are needed ("Amon")
+  - Required var:
+    * 3D: ta, ua, va, zg, hus
+    * 2D: uas, vas, tas, ts, hurs,ps, psl
 
 
 2. Once the data is downloaded, it must be organized into folders. We initially organized them into two folders: historical and ssp585. Within those two folders, they are organized into directories for each variable. Finally, the files are distributed in folders for each model (ej: $WORKDIR/historical/va/ACCESS-CM2). All variables files are inside as downloaded from ESGF. An example on how to organize files this way is provided here: [reorganize_CMIP6_folders.py](reorganize_CMIP6_folders.py)
@@ -37,11 +48,20 @@ or manually with cdo:
 
 3. Finally, interpolate the ensemble means to ERA5 pressure levels using [Interpolate_CMIP6_Annual_cycle-CC_pinterp.py](Interpolate_CMIP6_Annual_cycle-CC_pinterp.py)
 
-This script needs a sample ERA5 netcdf data to get the plevs. We created it from a grib file downloaded from ECMWF and converted to netCDF using [grib2netcdf.py](grib2netcdf.py), from which the pressure levels are then extracted using:
+This script needs a sample ERA5 netcdf data to get the plevs. We created it from a grib file downloaded from ECMWF (see [Download ERA5](#download-era5)) and converted to netCDF using [grib2netcdf.py](grib2netcdf.py), from which the pressure levels are then extracted using:
 
         ncks -v plev era5_daily_pl_20120101.nc era5_plev.nc
 
 The resulting file is provided here [era5_plev.nc](era5_plev.nc)
+
+## Merge ERA5 and CMIP5 anomalies into single WRF-intermediate files
+
+In this section we combine ERA5 data and the CMIP6 Climate Change Signal to create the PGW WRF-intermediate files. We use a fortran routine from Python to write the FORTRAN WRF-intermediate files.  
+
+1. We need to convert the Fortran routine [outputInter.f90](outputInter.f90) to a Python module using f2py:
+
+        f2py -c -m outputInter outputInter.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000
+2. Rename mv outputInter.[cpython-37m-x86_64-linux-gnu].so to outputInter.so
 
  
 
