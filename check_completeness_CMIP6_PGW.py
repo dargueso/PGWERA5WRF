@@ -79,7 +79,7 @@ logging.info("Checking completeness of CMIP6 files for PGW")
 
 logger = logging.getLogger("checkCMI6PGW")
 
-scenarios = {"historical": [1850, 2014], "ssp585": [2015, 2100]}
+scenarios = {"historical": [1950, 2014], "ssp585": [2015, 2099]}
 
 
 class bcolors:
@@ -109,7 +109,6 @@ def main():
                     finvar = xr.open_mfdataset(
                         finlesin_var, use_cftime=True, combine="by_coords"
                     )
-
                     # Checking that the period is covered
                     if (finvar.time[0].dt.year > scenarios[scen][0]) or (
                         finvar.time[-1].dt.year < scenarios[scen][1]
