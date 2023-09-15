@@ -66,7 +66,6 @@ import outputInter as f90
 import datetime as dt
 import sys
 import matplotlib.pyplot as plt
-import wrf_variables as fs
 import copy as cp
 import pdb
 import os
@@ -168,7 +167,7 @@ syear = opts.syear
 eyear = opts.eyear
 nyears = eyear - syear + 1
 smonth = 1
-emonth = 1 
+emonth = 1
 
 vars3d = ["hur", "ta", "ua", "va", "zg"]
 vars3d_codes = {"hur": "r", "ta": "t", "ua": "u", "va": "v", "zg": "z"}
@@ -360,38 +359,6 @@ while year < eyear or (year == eyear and month < emonth):
                         + (var_anom_2 - var_anom_1) * (tdelta_before) / tdelta_mid_month
                     )
 
-                # Convert relative humidity to specific humidity
-                # if var == "hus":
-                #     # Read temperature and pressure
-                #     varT = ferapl.variables["%s" % (vars3d_codes["ta"])][
-                #         nt, ::-1, :, :
-                #     ]
-                #     varP = np.repeat(
-                #         np.repeat(plvs, varT.shape[1]), varT.shape[2]
-                #     )
-                #     varP = varP.reshape(
-                #         varT.shape[0], varT.shape[1], varT.shape[2]
-                #     )  # varP is in Pa
-
-                #     es = 100.0 * fs.compute_es(
-                #         varT
-                #     )  # the result of compute is in hPa
-                #     es_mod = cp.deepcopy(es)
-                #     es_mod[
-                #         30:, :, :
-                #     ] = 0  # saturation pressure equal zero in the stratosphere (levels over 20 hPa)
-                #     ws = es * const.Rd / (const.Rv * (varP - es_mod))
-                #     w = ws * var_era / 100.0
-                #     var_era = w / (w + 1)
-
-                # # Define the pseudo global warming
-                # temp = var_era + np.nan_to_num(var_anom)
-                # if var == "hus":
-                #     temp[
-                #         temp < 0
-                #     ] = 0  # replace values smaller than zero by zero
-                # vout[var] = temp
-                # fanom.close()
                 # Define the pseudo global warming
                 temp = var_era + np.nan_to_num(var_anom)
                 if var == "hur":

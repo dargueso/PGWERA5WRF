@@ -18,7 +18,7 @@ In this section, we download available CMIP6 data at monthly frequency for the p
 
  - Only monthly means are needed ("Amon")
   - Required var:
-    * 3D: ta, ua, va, zg, hus
+    * 3D: ta, ua, va, zg, hur
     * 2D: uas, vas, tas, ts, hurs,ps, psl
 
 
