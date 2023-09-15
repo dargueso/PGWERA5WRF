@@ -59,7 +59,6 @@ if models_str is None:
         models_proj = f.read().splitlines()
 
     models = list(set(models_hist + models_proj))
-    # models = ["GFDL-CM4_r1i1p1f1"]  # , "MPI-ESM1-2-HR_r1i1p1f1", "MRI-ESM2-0_r1i1p1f1"]
 else:
     models = args.models.split(",")
 
