@@ -63,7 +63,36 @@ In this section we combine ERA5 data and the CMIP6 Climate Change Signal to crea
         f2py -c -m outputInter outputInter.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000
 2. Rename mv outputInter.[cpython-37m-x86_64-linux-gnu].so to outputInter.so
 
- 
+3. Run [write_intermediate_ERA5_CMIP6anom.py](write_intermediate_ERA5_CMIP6anom.py) which makes use of [outputInter.f90](outputInter.f90) (as a python module), [constanst.py](constanst.py), [wrf_variables.py](wrf_variables.py). It basically interpolates CMIP6 anomalies to every 3 or 6 hours (from monthly) and builds the WRF-Intermediate adding CMIP6 anomalies and ERA5 fields. Depending on CDO version variables in the ERA5 netCDF files may have names or codes, modify the vars2d_codes and vars3d_codes accordingly. Currently working with names.
+
+## Create soil variables
+
+Create a file with soil variables to initalize. Most GCMs do not write out soil variables. We create a climatological file from ERA5 that is simply used to initialize the model.
+
+Steps to create soil variables climatology
+
+        cdo cat era5_daily_sfc_20??0[6-8]??.grb aux.grb
+        cdo dhourmean aux.grb aux2.grb
+        cdo setdate,2020-07-22 aux2.grb SOILCLIM_June-Aug.grb 
+
+In the WPS folder:
+- Then link Vtable.ERA5.SOIL1ststep to Vtable
+- Copy namelist_soilera5_cmip6_pgw.wps to namelist.wps
+- And run ungrib.exe normally.
+
+
+Using NCO instead of CDO was done previously but causes problems with LANDMASK
+
+        ncea era5_daily_sfc_20??07??.nc aux.nc
+        ncra aux.nc sfcclim.nc
+
+        #This outputInter_soil.f90 was created from the original outputInter.f90
+        f2py -c -m outputInter_soil outputInter_soil.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000 
+        
+        mv outputInter_soil.cpython-37m-x86_64-linux-gnu.so outputInter_soil.so
+
+        #Same for this one, it was created from the originla write_intermediate_ERA5_CMIP6anom.py
+        python write_intermediate_ERA5_CMIP6anom_SOILCLIM.py -s 2010 -e 2020 
 
 # CMIP6 Models
 
