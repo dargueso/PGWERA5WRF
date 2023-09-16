@@ -9,8 +9,6 @@ email: a.diluca@unsw.edu.au
 Created: Wed Jun 17 14:08:31 AEST 2015
 
 
-
-
 Modified: March 23 2016
  - I added a conversion from relative humidity to specific humidity for the 3-d variable (Alejandro)
  - I added a mask to the surface temperature so the output looks the same as the ERA-Interm field (Alejandro)
@@ -51,7 +49,11 @@ I have now modified the script so it checks the name and order of the pressure v
 Modified July 7 2021
  - Adapted to CMIP6 and ERA5 (Daniel Argüeso)
  - Part of the EPICC project
-
+ 
+Modified September 15 2023
+- Cleaned up the code and added some comments (Daniel Argüeso)
+- Added the use of relative humidity from CMIP6 instead of specific humidity (Daniel Argüeso)
+- Remove dependencies with external modules (Daniel Argüeso)
 
 
 """
@@ -250,7 +252,7 @@ nlat = 601
 nlon = 1200
 
 
-file_ref = nc.Dataset("%s/era5_daily_sfc_20140101.nc" % (ERA5_dir), "r")
+file_ref = nc.Dataset("%s/era5_daily_sfc_20120101.nc" % (ERA5_dir), "r")
 lat = file_ref.variables["lat"][:]
 lon = file_ref.variables["lon"][:]
 
