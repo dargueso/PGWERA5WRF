@@ -63,7 +63,7 @@ In this section we combine ERA5 data and the CMIP6 Climate Change Signal to crea
         f2py -c -m outputInter outputInter.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000
 2. Rename mv outputInter.[cpython-37m-x86_64-linux-gnu].so to outputInter.so
 
-3. Run [write_intermediate_ERA5_CMIP6anom.py](write_intermediate_ERA5_CMIP6anom.py) which makes use of [outputInter.f90](outputInter.f90) (as a python module), [constanst.py](constanst.py), [wrf_variables.py](wrf_variables.py). It basically interpolates CMIP6 anomalies to every 3 or 6 hours (from monthly) and builds the WRF-Intermediate adding CMIP6 anomalies and ERA5 fields. Depending on CDO version variables in the ERA5 netCDF files may have names or codes, modify the vars2d_codes and vars3d_codes accordingly. Currently working with names.
+3. Run [write_intermediate_ERA5_CMIP6anom.py](write_intermediate_ERA5_CMIP6anom.py) which makes use of [outputInter.f90](outputInter.f90) (as a python module), [constanst.py](constanst.py). It basically interpolates CMIP6 anomalies to every 3 or 6 hours (from monthly) and builds the WRF-Intermediate adding CMIP6 anomalies to ERA5 fields (ERA5 netcdf files are needed - see [Download ERA5](#download-era5) to see how to create them). Depending on CDO version variables in the ERA5 netCDF files may have names or codes, modify the vars2d_codes and vars3d_codes accordingly. Currently working with names.
 
 ## Create soil variables
 
@@ -75,7 +75,7 @@ Steps to create soil variables climatology
         cdo dhourmean aux.grb aux2.grb
         cdo setdate,2020-07-22 aux2.grb SOILCLIM_June-Aug.grb 
 
-In the WPS folder:
+In the WPS (WPS 4.4.1 was tested) folder:
 - Then link Vtable.ERA5.SOIL1ststep to Vtable
 - Copy namelist_soilera5_cmip6_pgw.wps to namelist.wps
 - And run ungrib.exe normally.
