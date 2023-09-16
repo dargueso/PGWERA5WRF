@@ -2,6 +2,8 @@
 Software to modify ERA5 files and add a large-scale climate change signal from CMIP6 ensemble. 
 Create boundary conditions from ERA5+PGW for WRF.
 
+This is for the EPICC experiments, where soil variables are taken directly from ERA5 to initialize the model (no climatology is used)
+
 # Instructions
 
 ## Download ERA5
@@ -67,26 +69,12 @@ In this section we combine ERA5 data and the CMIP6 Climate Change Signal to crea
 
 ## Create soil variables
 
-We need to create a climatology with soil variables to initialize. Most GCMs do not write out soil variables, but WRF with Land Surface Model needs them. 
+Create a file with soil variables to initalize. Most GCMs do not write out soil variables. We create a sample intermediate file for each simulation with the state of the soil using:
 
-1. Create a climatology from ERA5 data. Assuming our simulations start in December, we create a climatology for that month.
+        python myrunWPSandreal_UIB_daily_EPICC_2km_ERA5_CMIP6anom_SOILERA.py 
 
-        cdo ensmean era5_daily_sfc_20??12??.grb soil_clim_dec.grb
-
-Then go to WPS (tested 4.4.2)
-
-        ./link_grib.csh ~/BDY_DATA/ERA5/soil_clim_dec.grb 
-
-Use the namelist [namelist_soilera5_cmip6_pgw.wps](namelist_soilera5_cmip6_pgw.wps) where we need to adapt the dates depending on the dates of the soil_clim_dec.grb, which will depend on the files we used to generate the mean.
-
-        mv namelist_soilera5_cmip6_pgw.wps namelist.wps
-        ./ungrib.exe
-
-This will generate a file SOILERA5:2005-12-01_00 (this will be the date if your first file in the climatology is for 01/12/2005). This file can be used as a constant.
-
-When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section.
-There is a module in real/wrf  that should be changed too [module_initialize_real.F](module_initialize_real.F)->[module_initialize_real.F_modified](module_initialize_real.F_modified), so that the model only uses soil variables for initialization and ignores the rest (not sure this is entirely necessary, but it is if only the first step is provided.)
-
+which relies on [namelist_wps_EPICC_2km_ERA5_CMIP6anom_SOILERA.deck](namelist_wps_EPICC_2km_ERA5_CMIP6anom_SOILERA.deck).
+This creates only a snapshot of soil variables at the starting date.
 
 # CMIP6 Models
 
