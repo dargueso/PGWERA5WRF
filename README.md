@@ -80,12 +80,14 @@ Then go to WPS (tested 4.4.2)
 Use the namelist [namelist_soilera5_cmip6_pgw.wps](namelist_soilera5_cmip6_pgw.wps) where we need to adapt the dates depending on the dates of the soil_clim_dec.grb, which will depend on the files we used to generate the mean.
 
         mv namelist_soilera5_cmip6_pgw.wps namelist.wps
+        ln -sf Vtable.ERA5.SOIL1ststep Vtable
         ./ungrib.exe
 
 This will generate a file SOILERA5:2005-12-01_00 (this will be the date if your first file in the climatology is for 01/12/2005). This file can be used as a constant.
 
-When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section.
+When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section. We also need to use the modified METGRID.TBL [METGRID.TBL.ARW_PGW](METGRID.TBL.ARW_PGW)
 There is a module in real/wrf  that should be changed too [module_initialize_real.F](module_initialize_real.F)->[module_initialize_real.F_modified](module_initialize_real.F_modified), so that the model only uses soil variables for initialization and ignores the rest (not sure this is entirely necessary, but it is if only the first step is provided.)
+
 
 
 # CMIP6 Models
