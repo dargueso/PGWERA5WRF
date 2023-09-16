@@ -67,32 +67,26 @@ In this section we combine ERA5 data and the CMIP6 Climate Change Signal to crea
 
 ## Create soil variables
 
-Create a file with soil variables to initalize. Most GCMs do not write out soil variables. We create a climatological file from ERA5 that is simply used to initialize the model.
+We need to create a climatology with soil variables to initialize. Most GCMs do not write out soil variables, but WRF with Land Surface Model needs them. 
 
-Steps to create soil variables climatology
+1. Create a climatology from ERA5 data. Assuming our simulations start in December, we create a climatology for that month.
 
-        cdo cat era5_daily_sfc_20??0[6-8]??.grb aux.grb
-        cdo dhourmean aux.grb aux2.grb
-        cdo setdate,2020-07-22 aux2.grb SOILCLIM_June-Aug.grb 
+        cdo ensmean era5_daily_sfc_20??12??.grb soil_clim_dec.grb
 
-In the WPS (WPS 4.4.1 was tested) folder:
-- Then link Vtable.ERA5.SOIL1ststep to Vtable
-- Copy namelist_soilera5_cmip6_pgw.wps to namelist.wps
-- And run ungrib.exe normally.
+Then go to WPS (tested 4.4.2)
 
+        ./link_grib.csh ~/BDY_DATA/ERA5/soil_clim_dec.grb 
 
-Using NCO instead of CDO was done previously but causes problems with LANDMASK
+Use the namelist [namelist_soilera5_cmip6_pgw.wps](namelist_soilera5_cmip6_pgw.wps) where we need to adapt the dates depending on the dates of the soil_clim_dec.grb, which will depend on the files we used to generate the mean.
 
-        ncea era5_daily_sfc_20??07??.nc aux.nc
-        ncra aux.nc sfcclim.nc
+        mv namelist_soilera5_cmip6_pgw.wps namelist.wps
+        ./ungrib.exe
 
-        #This outputInter_soil.f90 was created from the original outputInter.f90
-        f2py -c -m outputInter_soil outputInter_soil.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000 
-        
-        mv outputInter_soil.cpython-37m-x86_64-linux-gnu.so outputInter_soil.so
+This will generate a file SOILERA5:2005-12-01_00 (this will be the date if your first file in the climatology is for 01/12/2005). This file can be used as a constant.
 
-        #Same for this one, it was created from the originla write_intermediate_ERA5_CMIP6anom.py
-        python write_intermediate_ERA5_CMIP6anom_SOILCLIM.py -s 2010 -e 2020 
+When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section.
+There is a module in real/wrf  that should be changed too [module_initialize_real.F](module_initialize_real.F)->[module_initialize_real.F_modified](module_initialize_real.F_modified), so that the model only uses soil variables for initialization and ignores the rest (not sure this is entirely necessary, but it is if only the first step is provided.)
+
 
 # CMIP6 Models
 
