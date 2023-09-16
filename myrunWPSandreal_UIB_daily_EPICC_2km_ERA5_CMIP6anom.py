@@ -85,11 +85,11 @@ def sel_grbfiles(filelist, sdate, edate):
 # Start month of the simulation. Will start at day 1.
 
 start_month = 1
-start_year = 2012
+start_year = 2013
 
 # End month of the simulation (included).
 end_month = 1
-end_year = 2013
+end_year = 2014
 
 
 # How many days in advance (spin-up)?
@@ -100,15 +100,15 @@ indeck_wps = "namelist_wps_EPICC_2km_ERA5_CMIP6anom.deck"
 indeck_wrf = "namelist_input_EPICC_2km_ERA5_CMIP6anom.deck"
 
 this_dir = os.getcwd()
-wrf_dir = "/home/dargueso/WRF_runs/EPICC_WRFV4.2.2_CMIP6PGW_copy/WRF/run"
-wps_dir = "/home/dargueso/WRF_runs/EPICC_WRFV4.2.2_CMIP6PGW_copy/WPS"
+wrf_dir = "/home/dargueso/WRF_runs/EPICC_WRFV4.2.2_CMIP6PGW/WRF/run"
+wps_dir = "/home/dargueso/WRF_runs/EPICC_WRFV4.2.2_CMIP6PGW/WPS"
 grb_dir = "/vg6a/dargueso/BDY_DATA/ERA5_CMIP6anom/"
-int_dir = "/vg5/dargueso/BDY_DATA/PGW_CMIP6_tests/"
-bdy_dir = "/vg5/dargueso//BDY_DATA/PGW_CMIP6_tests"
+int_dir = "/vg5/dargueso/Scripts/EPICC_scripts/WRF_experiments/Bdy_conds_scripts/CMIP6/"
+bdy_dir = "/vg6a/dargueso/BDY_DATA/ERA5_CMIP6anom/WRF-boundary/EPICC/EPICC_2km_ERA5/"
 
 run_geogrid = False
 run_ungrib = False
-run_metgrid = True
+run_metgrid = True 
 
 run_real = True
 
@@ -127,14 +127,13 @@ init_date = dt.datetime(start_year, start_month, 1) - dt.timedelta(days=spinup)
 year = init_date.year
 month = init_date.month
 day = init_date.day
-# day = 10
+#day = 10 
 firstday = True
 
 
 while year < end_year or (year == end_year and month < end_month):
     ## DEFINE SOILERA FILES
-    # soilera5_file = f"SOILERA5:{start_year-1}-12-22_00"
-    soilera5_file = "SOILERA5:2005-12-01_00"
+    soilera5_file = f"SOILERA5:{start_year-1}-12-22_00"
 
     # get the month as a 2 digit string
     monthstr = str(month).rjust(2, "0")
@@ -285,7 +284,7 @@ while year < end_year or (year == end_year and month < end_month):
         print("Running metgrid.exe")
 
         intfiles = sorted(glob("%s/ERA5:*" % (int_dir)))
-        # intfiles = sorted(glob("%s/WRF-Intermediate/ERA5:*" % (grb_dir)))
+        #intfiles = sorted(glob("%s/WRF-Intermediate/ERA5:*" % (grb_dir)))
 
         sdatestr = "%s%s%s" % (s_simyea, smonstr, sdaystr)
         edatestr = "%s%s%s" % (e_simyea, emonstr, edaystr)

@@ -73,8 +73,14 @@ Create a file with soil variables to initalize. Most GCMs do not write out soil 
 
         python myrunWPSandreal_UIB_daily_EPICC_2km_ERA5_CMIP6anom_SOILERA.py 
 
-which relies on [namelist_wps_EPICC_2km_ERA5_CMIP6anom_SOILERA.deck](namelist_wps_EPICC_2km_ERA5_CMIP6anom_SOILERA.deck).
+which relies on [namelist_wps_EPICC_2km_ERA5_CMIP6anom_SOILERA.deck](namelist_wps_EPICC_2km_ERA5_CMIP6anom_SOILERA.deck) and [Vtable.ERA5.SOIL1ststep](Vtable.ERA5.SOIL1ststep). The latter needs to be adequately linked to Vtable like any other Variable Table (this is done automatically by the script)
 This creates only a snapshot of soil variables at the starting date.
+
+## Running the model
+
+Once the WRF-intermediate files with soil variables are created for the start date of each experiment, we can run the model. We have provided sample scripts and namelists that automatically use these files:
+
+- 
 
 # CMIP6 Models
 
