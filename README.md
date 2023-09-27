@@ -85,7 +85,7 @@ Use the namelist [namelist_soilera5_cmip6_pgw.wps](namelist_soilera5_cmip6_pgw.w
 
 This will generate a file SOILERA5:2005-12-01_00 (this will be the date if your first file in the climatology is for 01/12/2005). This file can be used as a constant.
 
-When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section. We also need to use the modified METGRID.TBL [METGRID.TBL.ARW_PGW](METGRID.TBL.ARW_PGW).
+When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section. We also may need to use the modified METGRID.TBL [METGRID.TBL.ARW_PGW](METGRID.TBL.ARW_PGW), although this depends on how we decide to interpolate variables masked with LANDMASK.
 There is a module in real/wrf that should be changed too [module_initialize_real.F](module_initialize_real.F)->[module_initialize_real.F_modified](module_initialize_real.F_modified), so that the model only uses soil variables for initialization and ignores the rest (not sure this is entirely necessary, but it is if only the first step is provided.)
 
 
