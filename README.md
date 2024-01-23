@@ -1,4 +1,6 @@
 # PGWERA5WRF
+[![DOI](https://zenodo.org/badge/691022503.svg)](https://zenodo.org/badge/latestdoi/691022503)
+
 Software to modify ERA5 files and add a large-scale climate change signal from CMIP6 ensemble. 
 Create boundary conditions from ERA5+PGW for WRF.
 
