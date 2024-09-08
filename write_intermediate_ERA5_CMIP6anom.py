@@ -168,7 +168,7 @@ create_figs = False
 syear = opts.syear
 eyear = opts.eyear
 nyears = eyear - syear + 1
-smonth = 1
+smonth = 6 
 emonth = 1
 
 vars3d = ["hur", "ta", "ua", "va", "zg"]
@@ -199,13 +199,14 @@ var_units_era5 = {
     "2t": "K",
     "2d": "K",
     "lsm": "0/1 Flag",
+    "skt": "K",
 }
 
 nfields3d = len(vars3d)
 nfields2d = len(vars2d)
 
 CMIP6anom_dir = "/home/dargueso/BDY_DATA/CMIP6"
-ERA5_dir = "/home/dargueso/BDY_DATA/ERA5/ERA5_netcdf"
+ERA5_dir = "/home/dargueso//BDY_DATA/ERA5/ERA5_netcdf/BALEARS_1km_CC/"
 figs_path = "/home/dargueso/BDY_DATA/CMIP6/Figs"
 
 plvs = [
@@ -252,7 +253,7 @@ nlat = 601
 nlon = 1200
 
 
-file_ref = nc.Dataset("%s/era5_daily_sfc_20120101.nc" % (ERA5_dir), "r")
+file_ref = nc.Dataset("%s/era5_daily_sfc_20090606.nc" % (ERA5_dir), "r")
 lat = file_ref.variables["lat"][:]
 lon = file_ref.variables["lon"][:]
 
@@ -276,7 +277,7 @@ while year < eyear or (year == eyear and month < emonth):
     )
 
     date_init = dt.datetime(year, month, day, 00)
-    date_end = dt.datetime(year, month, day, 18)
+    date_end = dt.datetime(year, month, day, 21)
 
     time_filepl = ferapl.variables["time"]
     time_filesfc = ferasfc.variables["time"]
@@ -335,7 +336,7 @@ while year < eyear or (year == eyear and month < emonth):
                 print("Processing variable %s" % (var))
 
                 fanom = nc.Dataset(
-                    "%s/%s_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc"
+                    "%s/%s_2004-2023_2031-2050_historical-ssp585_CC_signal_pinterp.nc"
                     % (CMIP6anom_dir, var)
                 )
                 var_era = ferapl.variables["%s" % (vars3d_codes[var])][nt, ::-1, :, :]
@@ -362,7 +363,7 @@ while year < eyear or (year == eyear and month < emonth):
                     )
 
                 # Define the pseudo global warming
-                temp = var_era + np.nan_to_num(var_anom)
+                temp = var_era + np.nan_to_num(var_anom)#.filled(np.nan)
                 if var == "hur":
                     temp[temp < 0] = 0  # replace values smaller than zero by zero
                     temp[temp > 100] = 100
@@ -417,7 +418,7 @@ while year < eyear or (year == eyear and month < emonth):
                     var_era = ferasfc.variables["%s" % (vars2d_codes[var])][nt, :, :]
 
                 fanom = nc.Dataset(
-                    "%s/%s_CC_signal_ssp585_2070-2099_1985-2014.nc"
+                    "%s/%s_2004-2023_2031-2050_historical-ssp585_CC_signal.nc"
                     % (CMIP6anom_dir, var)
                 )
                 # if hasattr(fanom.variables["%s" %(var)],'units'):
@@ -465,7 +466,7 @@ while year < eyear or (year == eyear and month < emonth):
                                 units = var_units_era5["%s" % (vars2d_codes[var])]
                         if ii == 1:
                             aa = var_anom[:]
-                            units = anom_units
+                            #units = anom_units
                         if ii == 2:
                             aa = vout[var][:]
                         figname = figs_path + "%s_%s_%s-%s-%s-%s.png" % (
@@ -478,7 +479,7 @@ while year < eyear or (year == eyear and month < emonth):
                         )
                         plt.contourf(aa)
                         plt.colorbar()
-                        plt.title(var + " [" + units + "]")
+                        #plt.title(var + " [" + units + "]")
                         plt.savefig(figname)
                         plt.close()
                         # -----------------------------------------------------------------------------------------------

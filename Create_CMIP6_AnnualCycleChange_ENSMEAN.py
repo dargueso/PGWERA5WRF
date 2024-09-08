@@ -17,14 +17,12 @@
 #
 #####################################################################
 """
-
-
-import os, argparse
 import xarray as xr
 import numpy as np
 from glob import glob
 import subprocess as subprocess
 from pathlib import Path
+import pgw4era_config as cfg
 
 
 class bcolors:
@@ -38,77 +36,54 @@ class bcolors:
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
 
+#####################################################################
+#####################################################################
+
+def mean_with_missing_threshold(data_array, dim, threshold=0.2):
+    # Step 1: Count the number of valid (non-NaN) points along the dimension
+    valid_counts = data_array.count(dim=dim)
+    
+    # Step 2: Calculate the total number of points along the dimension
+    total_counts = data_array.sizes[dim]
+    
+    # Step 3: Identify where more than 20% of the points are missing
+    missing_fraction = 1 - (valid_counts / total_counts)
+    mask = missing_fraction > threshold
+    
+    # Step 4: Calculate the mean, ignoring NaNs
+    mean_values = data_array.mean(dim=dim, skipna=True)
+    
+    # Step 5: Apply the mask to set the mean to NaN where the threshold is exceeded
+    mean_values = mean_values.where(~mask, np.nan)
+    
+    return mean_values
+
 
 #####################################################################
 #####################################################################
 
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="PURPOSE: Check the completeness of the CMIP6 files for PGW"
-    )
-
-    parser.add_argument(
-        "-m",
-        "--models",
-        dest="models",
-        help="Optional input list of models",
-        type=str,
-        nargs="?",
-        default=None,
-    )
-
-    # variable(s) to process
-    parser.add_argument(
-        "-v",
-        "--var_names",
-        type=str,
-        help="Variable names (e.g. ta) to process. Separate "
-        + 'multiple variable names with "," (e.g. tas,ta). Default is '
-        + "to process all required variables hurs,tas,ps,ts,vas,uas,psl,ta,hus,ua,va,zg.",
-        default="hurs,tas,ps,ts,vas,uas,psl,ta,hus,ua,va,zg",
-    )
-
-    # input directory
-    parser.add_argument(
-        "-i",
-        "--input_dir",
-        type=str,
-        help="Directory with input GCM delta files on ERA5 grid",
-        default="./regrid_ERA5/",
-    )
-
-    # corrected_plevs directory
-    parser.add_argument(
-        "-cp",
-        "--corrected_plevs_dir",
-        type=str,
-        help="Directory where the GCM delta files with corrected plevs should be stored.",
-        default="./regrid_ERA5/corrected_plevs/",
-    )
-
-    # output directory
-    parser.add_argument(
-        "-o",
-        "--output_dir",
-        type=str,
-        help="Directory where the GCM ENSEMBLE delta files should be stored.",
-        default="./regrid_ERA5/",
-    )
-    args = parser.parse_args()
-    return args
-
-
-args = parse_args()
-models_str = args.models
+models_str = cfg.models
 
 if models_str is None:
     with open("list_CMIP6.txt") as f:
         models = f.read().splitlines()
 else:
-    models = args.models.split(",")
+    models = cfg.models
 
-variables = args.var_names.split(",")
+variables = cfg.variables_all
+experiments = cfg.experiments
+year_ranges = cfg.periods
+syearp = year_ranges[0][0]
+eyearp = year_ranges[0][1]
+syearf = year_ranges[1][0]
+eyearf = year_ranges[1][1]
+
+idir = f"{cfg.CMIP6anom_dir }/regrid_ERA5"
+odir = f"{cfg.CMIP6anom_dir }/regrid_ERA5"
+cpdir = f"{cfg.CMIP6anom_dir }/corrected_plevs"
+syear_exp = {"historical": 1985, "ssp585": 2015}
+eyear_exp = {"historical": 2014, "ssp585": 2099}
+
 
 plvs = np.asarray(
     [
@@ -134,30 +109,32 @@ plvs = np.asarray(
     ]
 )
 correct_plevs = True
+
+
 #####################################################################
 #####################################################################
 
 
 def main():
-    Path(args.output_dir).mkdir(exist_ok=True, parents=True)
+    Path(odir).mkdir(exist_ok=True, parents=True)
 
     for GCM in models:
         if correct_plevs:
-            Path(f"{args.corrected_plevs_dir}").mkdir(exist_ok=True, parents=True)
+            Path(f"{cpdir}").mkdir(exist_ok=True, parents=True)
             for vn, varname in enumerate(variables):
-                filepath = f"{args.input_dir}/{varname}_{GCM}_delta.nc"
+                filepath = f"{idir}/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_{GCM}_delta.nc"
                 filename = filepath.split("/")[-1]
                 print(filename)
                 fin = xr.open_dataset(filepath)
-                if varname in ["ta", "hus", "ua", "va", "zg"]:
+                if varname in ["ta", "hur", "ua", "va", "zg"]:
                     fin.coords["plev"] = plvs
-                    fin.to_netcdf(f"{args.corrected_plevs_dir}/{filename}")
+                    fin.to_netcdf(f"{cpdir}/{filename}")
                 else:
                     if "height" in fin.coords:
-                        fin = fin.drop("height")
+                        fin = fin.drop_vars("height")
                     fin = fin[varname]
                     # import pdb; pdb.set_trace()  # fmt: skip
-                    fin.to_netcdf(f"{args.corrected_plevs_dir}/{filename}")
+                    fin.to_netcdf(f"{cpdir}/{filename}")
 
     for varname in variables:
         print(varname)
@@ -172,11 +149,15 @@ def main():
         #     raise SystemExit(
         #         f"{bcolors.ERROR}ERROR: Could not make the ensemble mean{bcolors.ENDC}"
         #     )
-        filesin = sorted(glob(f"{args.corrected_plevs_dir}/{varname}_*"))
+        filesin = sorted(glob(f"{cpdir}/{varname}_*"))
+
+
+
 
         fin = xr.open_mfdataset(filesin, concat_dim="model", combine="nested")
-        fin_ensmean = fin.mean(dim="model").squeeze()
-        fin_ensmean.to_netcdf(f"{varname}_CC_signal_ssp585_2070-2099_1985-2014.nc")
+
+        fin_ensmean = mean_with_missing_threshold(fin, dim="model",threshold=1).squeeze()
+        fin_ensmean.to_netcdf(f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal.nc")
 
 
 ###############################################################################

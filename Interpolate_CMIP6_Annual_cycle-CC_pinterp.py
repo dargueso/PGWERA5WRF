@@ -27,14 +27,26 @@ from glob import glob
 import pandas as pd
 import xarray as xr
 import os
+import pgw4era_config as cfg
 
-ERA5_dir = "./"
-CMIP6anom_dir = "./"
+#####################################################################
+#####################################################################
 
-variables = ["ta", "ua", "va", "zg", "hus"]
-era5_ref = xr.open_dataset(f"{ERA5_dir}/era5_plev.nc")
+
+
+ERA5_pl_ref_file = cfg.ERA5_pl_ref_file
+CMIP6anom_dir = cfg.CMIP6anom_dir
+variables = cfg.variables_3d
+experiments = cfg.experiments
+year_ranges = cfg.periods
+syearp = year_ranges[0][0]
+eyearp = year_ranges[0][1]
+syearf = year_ranges[1][0]
+eyearf = year_ranges[1][1]
+
+
+era5_ref = xr.open_dataset(f"{ERA5_pl_ref_file}")
 era5_plev = era5_ref.plev.values
-
 
 if not os.path.exists(f"{CMIP6anom_dir}/interp_plevs/"):
     os.makedirs(f"{CMIP6anom_dir}/interp_plevs/")
@@ -46,17 +58,17 @@ def main():
         ctime_00 = checkpoint(0)
 
         if not os.path.exists(
-            f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc"
+            f"{CMIP6anom_dir}/interp_plevs/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal_pinterp.nc"
         ):
             fin = xr.open_dataset(
-                f"{CMIP6anom_dir}/{varname}_CC_signal_ssp585_2070-2099_1985-2014.nc"
+                f"{CMIP6anom_dir}/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal.nc"
             )
             fin.reindex(plev=fin.plev[::-1])
             fin_pinterp = fin.interp(
                 plev=era5_plev, kwargs={"fill_value": "extrapolate"}
             )
             fin_pinterp.to_netcdf(
-                f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc",
+                f"{CMIP6anom_dir}/interp_plevs/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal_pinterp.nc",
                 unlimited_dims="time",
             )
         ctime1 = checkpoint(ctime_00, f"{varname} file interpolated")
