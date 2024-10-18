@@ -149,13 +149,24 @@ def main():
         #     raise SystemExit(
         #         f"{bcolors.ERROR}ERROR: Could not make the ensemble mean{bcolors.ENDC}"
         #     )
-        filesin = sorted(glob(f"{cpdir}/{varname}_*"))
 
-
-
-
+        filesin = []
+        for GCM in models:
+            filesin.extend(
+                sorted(
+                    glob(
+                        f"{cpdir}/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_{GCM}_delta.nc"
+                    )
+                )
+            )
+        
         fin = xr.open_mfdataset(filesin, concat_dim="model", combine="nested")
 
+        if "areacella" in fin.variables:
+            fin = fin.drop_vars("areacella")
+
+        fin.to_netcdf(f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal_allmodels.nc")
+        
         fin_ensmean = mean_with_missing_threshold(fin, dim="model",threshold=1).squeeze()
         fin_ensmean.to_netcdf(f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal.nc")
 
