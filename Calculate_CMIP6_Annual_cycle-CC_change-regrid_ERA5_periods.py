@@ -161,18 +161,39 @@ def calculate_annual_cycle(GCM, varname, experiments, syear, eyear, idir, odir):
     Calculate annual cycle"""
     
     filenames_p = sorted(glob(f"{idir}/{experiments[0]}/{varname}/{GCM}/{varname}*nc"))
-    finall_p = xr.open_mfdataset(filenames_p, preprocess=preprocess)
-    
+    finallp = xr.open_mfdataset(filenames_p, preprocess=preprocess)
+    if finallp.time.dtype == "O":
+        finallp["time"] = finallp["time"].astype("datetime64[ns]")
+    finallp_period = finallp.sel(time=slice(str(syear), str(eyear)))
+
     filenames_f = sorted(glob(f"{idir}/{experiments[1]}/{varname}/{GCM}/{varname}*nc"))
-    finall_f = xr.open_mfdataset(filenames_f, preprocess=preprocess)
+    finallf = xr.open_mfdataset(filenames_f, preprocess=preprocess)
+    finallf = finallf.where(finallf[varname] != 0.)  
+    if finallf.time.dtype == "O":
+        finallf["time"] = finallf["time"].astype("datetime64[ns]")
+    finallf_period = finallf.sel(time=slice(str(syear), str(eyear)))
+
+    finall = xr.concat([finallp_period, finallf_period], dim="time")
+
+    # import pdb; pdb.set_trace()  # fmt: skip
+
+    # if syear < eyear_exp[experiments[0]] and eyear <= eyear_exp[experiments[0]]:
+    #     filenames_p = sorted(glob(f"{idir}/{experiments[0]}/{varname}/{GCM}/{varname}*nc"))
+    #     finall = xr.open_mfdataset(filenames_p, preprocess=preprocess)
+    # elif syear > syear_exp[experiments[1]] and eyear <= eyear_exp[experiments[1]]:
+    #     filenames_f = sorted(glob(f"{idir}/{experiments[1]}/{varname}/{GCM}/{varname}*nc"))
+    #     finall = xr.open_mfdataset(filenames_f, preprocess=preprocess)
+    # else:
+    #     raise SystemExit(
+    #         f"{bcolors.ERROR}ERROR: Requested years are not available: {GCM} {varname} {bcolors.ENDC}"
+    #     )
     
-    if finall_p.time.dtype == "O":
-        finall_p["time"] = finall_p["time"].astype("datetime64[ns]")
-    if finall_f.time.dtype == "O":
-        finall_f["time"] = finall_f["time"].astype("datetime64[ns]")
+
+    # if finall_f.time.dtype == "O":
+    #     finall_f["time"] = finall_f["time"].astype("datetime64[ns]")
     
     #Concatenate the two datasets along the time dimension
-    finall = xr.concat([finall_p, finall_f], dim="time")
+    #finall = xr.concat([finall_p, finall_f], dim="time")
     
     Path(f"{odir}/{GCM}/").mkdir(exist_ok=True, parents=True)
 
@@ -212,7 +233,7 @@ def calculate_annual_cycle(GCM, varname, experiments, syear, eyear, idir, odir):
         elif varname == "zg":
             fin_p = fin_p.where((fin_p.zg > -1000) & (fin_p.zg < 60000))
 
-        fin_p_mm = fin_p.groupby("time.month").mean("time")
+        fin_p_mm = fin_p.groupby("time.month").mean("time", skipna=False)
         fin_p_mm.to_netcdf(ofname)
         print(
             f"{bcolors.OKGREEN}Created annual cycle file for {GCM} {varname} {syear}-{eyear}{bcolors.ENDC}"
@@ -242,7 +263,6 @@ def calculate_CC_signal(GCM, varname, experiments, year_ranges, idir, odir):
     if not os.path.isfile(ofname):
         fin_p = xr.open_dataset(f"{idir}/{GCM}/{varname}_{syearp}-{eyearp}_{'-'.join(experiments)}.nc")
         fin_f = xr.open_dataset(f"{idir}/{GCM}/{varname}_{syearf}-{eyearf}_{'-'.join(experiments)}.nc")
-        # import pdb; pdb.set_trace()  # fmt: skip
         fin_d = fin_f - fin_p
 
         datelist = pd.date_range(f"{syearp}-01-01", periods=12, freq="MS")
