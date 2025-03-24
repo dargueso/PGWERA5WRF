@@ -59,6 +59,7 @@ if models_str is None:
         models_proj = f.read().splitlines()
 
     models = list(set(models_hist + models_proj))
+    # models = ["GFDL-CM4_r1i1p1f1"]  # , "MPI-ESM1-2-HR_r1i1p1f1", "MRI-ESM2-0_r1i1p1f1"]
 else:
     models = args.models.split(",")
 
@@ -78,7 +79,7 @@ logging.info("Checking completeness of CMIP6 files for PGW")
 
 logger = logging.getLogger("checkCMI6PGW")
 
-scenarios = {"historical": [1950, 2014], "ssp585": [2015, 2099]}
+scenarios = {"historical": [1850, 2014], "ssp585": [2015, 2099]}
 
 
 class bcolors:
@@ -108,6 +109,7 @@ def main():
                     finvar = xr.open_mfdataset(
                         finlesin_var, use_cftime=True, combine="by_coords"
                     )
+
                     # Checking that the period is covered
                     if (finvar.time[0].dt.year > scenarios[scen][0]) or (
                         finvar.time[-1].dt.year < scenarios[scen][1]
