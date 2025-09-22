@@ -14,6 +14,10 @@
 #
 # Files: Monthly files of CMIP6 models, and list of available models SearchLocations_intersection_cmip6_mon.txt
 #
+# Modified by Sergi González-Herrero
+# Date: March 11 2024
+# Changes: Inclusion of parsing future and past scenario's name and years
+#
 #####################################################################
 """
 
@@ -89,14 +93,51 @@ def parse_args():
         default="./",
     )
 
+    # scenario future
+    parser.add_argument(
+        "-f",
+        "--future_scenario",
+        type=str,
+        help="Scenario used for the future.",
+        default="ssp585",
+    )
+    
+    # scenario past
+    parser.add_argument(
+        "-p",
+        "--past_scenario",
+        type=str,
+        help="Scenario used for the past.",
+        default="historical",
+    )
+
+
+    # ERA5 date initial
+    parser.add_argument(
+        "-fy",
+        "--years_future",
+        type=str,
+        help="Year period for future scenarios.",
+        default="2070,2099",
+    )
+    
+    # ERA5 date end
+    parser.add_argument(
+        "-py",
+        "--years_past",
+        type=str,
+        help="Year period for past scenarios.",
+        default="1985,2014",
+    )
+    
     args = parser.parse_args()
     return args
-
-
 #####################################################################
 #####################################################################
-
 args = parse_args()
+
+print(args.years_past)
+
 models_str = args.models
 
 if models_str is None:
@@ -108,9 +149,9 @@ else:
 variables = args.var_names.split(",")
 idir = args.input_dir
 odir = args.output_dir
-experiments = ["historical", "ssp585"]
-syear_exp = {"historical": 1985, "ssp585": 2070}
-eyear_exp = {"historical": 2014, "ssp585": 2099}
+experiments = [args.past_scenario, args.future_scenario]
+syear_exp = {args.past_scenario: args.years_past[:4], args.future_scenario: args.years_future[:4]}
+eyear_exp = {args.past_scenario: args.years_past[5:], args.future_scenario: args.years_future[5:]}
 
 acycle_odir = f"{odir}/annual_cycle"
 deltas_odir = f"{odir}/deltas"
@@ -186,6 +227,7 @@ def calculate_annual_cycle(GCM, varname, exp, syear, eyear, idir, odir):
     Calculate annual cycle"""
 
     filenames_all = sorted(glob(f"{idir}/{exp}/{varname}/{GCM}/{varname}*nc"))
+    print(filenames_all)
     finall = xr.open_mfdataset(filenames_all, concat_dim="time", combine="nested")
 
     if finall.time.dtype == "O":
@@ -232,8 +274,8 @@ def calculate_CC_signal(GCM, varname, idir, odir):
     Path(f"{odir}/{GCM}/").mkdir(exist_ok=True, parents=True)
 
     if not os.path.isfile(ofname):
-        fin_p = xr.open_dataset(f"{idir}/{GCM}/{varname}_historical.nc")
-        fin_f = xr.open_dataset(f"{idir}/{GCM}/{varname}_ssp585.nc")
+        fin_p = xr.open_dataset(f"{idir}/{GCM}/{varname}_{experiments[0]}.nc")
+        fin_f = xr.open_dataset(f"{idir}/{GCM}/{varname}_{experiments[1]}.nc")
         # import pdb; pdb.set_trace()  # fmt: skip
         fin_d = fin_f - fin_p
 

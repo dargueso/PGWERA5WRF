@@ -16,6 +16,10 @@
 #
 # Files: Annual cycle change files from Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py and ERA5 sample.
 #
+# Modified by Sergi González-Herrero
+# Date: March 11 2024
+# Changes: Inclusion of parsing input directories scenario and date differences
+#
 #####################################################################
 """
 
@@ -26,12 +30,60 @@ import subprocess as subprocess
 from glob import glob
 import pandas as pd
 import xarray as xr
-import os
+import os, argparse
 
-ERA5_dir = "./"
-CMIP6anom_dir = "./"
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="PURPOSE: Interpolate from input data pressure levels to ERA5 pressure levels"
+    )
 
-variables = ["ta", "ua", "va", "zg", "hus"]
+    # input directory
+    parser.add_argument(
+        "-i",
+        "--input_dir",
+        type=str,
+        help="Directory where the GCM ENSEMBLE delta files is stored",
+        default="./regrid_ERA5/",
+    )
+
+    # corrected_plevs directory
+    parser.add_argument(
+        "-e",
+        "--ERA5_dir",
+        type=str,
+        help="Directory with ERA5 input data.",
+        default="../download_ERA5/",
+    )
+
+    # scenario difference
+    parser.add_argument(
+        "-s",
+        "--scenario_diff",
+        type=str,
+        help="Scenario difference for the filename in the format 'scenfuture-scenpast'.",
+        default="ssp585-hist",
+    )
+    
+    # date difference
+    parser.add_argument(
+        "-d",
+        "--date_diff",
+        type=str,
+        help="Date difference for the filename in the format 'YYYY-YYYY_YYYY-YYYY'.",
+        default="2070-2099_1985-2014",
+    )
+    
+    args = parser.parse_args()
+    return args
+
+
+args = parse_args()
+ERA5_dir = args.ERA5_dir
+CMIP6anom_dir = args.input_dir
+scenario_str = args.scenario_diff
+dates_str = args.date_diff
+
+variables = ["ta", "ua", "va", "zg", "hur"]
 era5_ref = xr.open_dataset(f"{ERA5_dir}/era5_plev.nc")
 era5_plev = era5_ref.plev.values
 
@@ -46,17 +98,17 @@ def main():
         ctime_00 = checkpoint(0)
 
         if not os.path.exists(
-            f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc"
+            f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_{scenario_str}_{dates_str}_pinterp.nc"
         ):
             fin = xr.open_dataset(
-                f"{CMIP6anom_dir}/{varname}_CC_signal_ssp585_2070-2099_1985-2014.nc"
+                f"{CMIP6anom_dir}/{varname}_CC_signal_{scenario_str}_{dates_str}.nc"
             )
             fin.reindex(plev=fin.plev[::-1])
             fin_pinterp = fin.interp(
                 plev=era5_plev, kwargs={"fill_value": "extrapolate"}
             )
             fin_pinterp.to_netcdf(
-                f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc",
+                f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_{scenario_str}_{dates_str}_pinterp.nc",
                 unlimited_dims="time",
             )
         ctime1 = checkpoint(ctime_00, f"{varname} file interpolated")

@@ -3,6 +3,7 @@
 
 Software to modify ERA5 files and add a large-scale climate change signal from CMIP6 ensemble. 
 Create boundary conditions from ERA5+PGW for WRF.
+Added specific features to use it in CRYOWRF [https://gitlabext.wsl.ch/atmospheric-models/CRYOWRF]
 
 # Instructions
 
@@ -38,7 +39,7 @@ Note: the common ERA5 grid is created from a sample era5 file using:
 
         cdo griddes era5_daily_sfc_20171130.nc > era5_grid
 
-1. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). This script may be edited to select the periods and the scenarios to be processed. It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories as arguments. Finally you can process one variable at a time by specifying it as an argument. 
+1. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories, scenarios and periods as arguments. Finally you can process one variable at a time by specifying it as an argument. 
 
 Note: Some GCMs provide data up to year 2300 or 2400, which create some problems. We have removed those years and process only until 2100.
 
@@ -63,9 +64,13 @@ In this section we combine ERA5 data and the CMIP6 Climate Change Signal to crea
 1. We need to convert the Fortran routine [outputInter.f90](outputInter.f90) to a Python module using f2py:
 
         f2py -c -m outputInter outputInter.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000
+
+Alternatively, a new option for CRYOWRF may be used.
+
 2. Rename mv outputInter.[cpython-37m-x86_64-linux-gnu].so to outputInter.so
 
 3. Run [write_intermediate_ERA5_CMIP6anom.py](write_intermediate_ERA5_CMIP6anom.py) which makes use of [outputInter.f90](outputInter.f90) (as a python module), [constanst.py](constanst.py). It basically interpolates CMIP6 anomalies to every 3 or 6 hours (from monthly) and builds the WRF-Intermediate adding CMIP6 anomalies to ERA5 fields (ERA5 netcdf files are needed - see [Download ERA5](#download-era5) to see how to create them). Depending on CDO version variables in the ERA5 netCDF files may have names or codes, modify the vars2d_codes and vars3d_codes accordingly. Currently working with names.
+Three more versions of this file are available, specifically for CRYOWRF, which also lets you to include different variables as arguments and work with simple files for each timestep or more complex files with different categories in each timestep.
 
 ## Create soil variables
 
@@ -130,3 +135,5 @@ There is a module in real/wrf that should be changed too [module_initialize_real
 # Authors
 
 * [Daniel Argueso](https://github.com/dargueso): Universitat de les Illes Balears
+* [Sergi González-Herrero](https://github.com/sergigonzalezh): WSL Institute for the Snow and Avalanche Research (SLF) [Modified from the original version of Daniel Argueso]
+

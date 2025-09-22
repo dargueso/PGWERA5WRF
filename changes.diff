@@ -1,0 +1,322 @@
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py ./Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py
+92,128d91
+<     # scenario future
+<     parser.add_argument(
+<         "-f",
+<         "--future_scenario",
+<         type=str,
+<         help="Scenario used for the future.",
+<         default="ssp585",
+<     )
+<     
+<     # scenario past
+<     parser.add_argument(
+<         "-p",
+<         "--past_scenario",
+<         type=str,
+<         help="Scenario used for the past.",
+<         default="historical",
+<     )
+< 
+< 
+<     # ERA5 date initial
+<     parser.add_argument(
+<         "-fy",
+<         "--years_future",
+<         type=str,
+<         help="Year period for future scenarios.",
+<         default="2070,2099",
+<     )
+<     
+<     # ERA5 date end
+<     parser.add_argument(
+<         "-py",
+<         "--years_past",
+<         type=str,
+<         help="Year period for past scenarios.",
+<         default="1985,2014",
+<     )
+<     
+130a94,95
+> 
+> 
+133,135d97
+< args = parse_args()
+< 
+< print(args.years_past)
+136a99
+> args = parse_args()
+148,150c111,113
+< experiments = [args.past_scenario, args.future_scenario]
+< syear_exp = {args.past_scenario: args.years_past[:4], args.future_scenario: args.years_future[:4]}
+< eyear_exp = {args.past_scenario: args.years_past[5:], args.future_scenario: args.years_future[5:]}
+---
+> experiments = ["historical", "ssp585"]
+> syear_exp = {"historical": 1985, "ssp585": 2070}
+> eyear_exp = {"historical": 2014, "ssp585": 2099}
+226d188
+<     print(filenames_all)
+273,274c235,236
+<         fin_p = xr.open_dataset(f"{idir}/{GCM}/{varname}_{experiments[0]}.nc")
+<         fin_f = xr.open_dataset(f"{idir}/{GCM}/{varname}_{experiments[1]}.nc")
+---
+>         fin_p = xr.open_dataset(f"{idir}/{GCM}/{varname}_historical.nc")
+>         fin_f = xr.open_dataset(f"{idir}/{GCM}/{varname}_ssp585.nc")
+Only in .: changes.diff
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/Create_CMIP6_AnnualCycleChange_ENSMEAN.py ./Create_CMIP6_AnnualCycleChange_ENSMEAN.py
+98,116d97
+<     
+<     # scenario difference
+<     parser.add_argument(
+<         "-s",
+<         "--scenario_diff",
+<         type=str,
+<         help="Scenario difference for the filename in the format 'scenfuture-scenpast'.",
+<         default="ssp585-hist",
+<     )
+< 
+<     # date difference
+<     parser.add_argument(
+<         "-d",
+<         "--date_diff",
+<         type=str,
+<         help="Date difference for the filename in the format 'YYYY-YYYY_YYYY-YYYY'.",
+<         default="2070-2099_1985-2014",
+<     )
+<     
+123,125d103
+< scenario_str = args.scenario_diff
+< dates_str = args.date_diff
+< out_dir = args.output_dir
+201c179
+<         fin_ensmean.to_netcdf(f"{args.output_dir}/{varname}_CC_signal_{scenario_str}_{dates_str}.nc")
+---
+>         fin_ensmean.to_netcdf(f"{varname}_CC_signal_ssp585_2070-2099_1985-2014.nc")
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/era5_grid ./era5_grid
+5,7c5,7
+< gridsize  = 289440
+< xsize     = 1440
+< ysize     = 201
+---
+> gridsize  = 721200
+> xsize     = 1200
+> ysize     = 601
+14,17c14,18
+< xfirst    = -180
+< xinc      = 0.25
+< yfirst    = -40
+< yinc      = -0.25
+---
+> xfirst    = 0
+> xinc      = 0.3
+> yfirst    = 90
+> yinc      = -0.3
+> scanningMode = 64
+Only in ../PGW_Simulations/3a.PGWERA5WRF: era5_gridcdo
+Only in .: .git
+Only in .: .gitattributes
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/grib2netcdf.py ./grib2netcdf.py
+32,33c32
+< 
+< filepatt = "../2a.download_ERA5/DATA_PAMIR_SEAS_2022/pamir_*.grib"
+---
+> filepatt = "era5_daily_sfc_201712*.grb"
+37,38c36,37
+< 	fout=fin.split("grib")[0]+"nc"
+< 	if not os.path.exists(f"{fout}"):
+---
+> 	fout=fin.split("grb")[0]+"nc"
+> 	if not os.path.exists(f"ERA5_netcdf/{fout}"):
+41c40
+<     		f"cdo -f nc copy {fin} {fout}",
+---
+>     		f"cdo -f nc copy {fin} ERA5_netcdf/{fout}",
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/Interpolate_CMIP6_Annual_cycle-CC_pinterp.py ./Interpolate_CMIP6_Annual_cycle-CC_pinterp.py
+29c29
+< import os, argparse
+---
+> import os
+31,80c31,32
+< def parse_args():
+<     parser = argparse.ArgumentParser(
+<         description="PURPOSE: Check the completeness of the CMIP6 files for PGW"
+<     )
+< 
+<     # input directory
+<     parser.add_argument(
+<         "-i",
+<         "--input_dir",
+<         type=str,
+<         help="Directory where the GCM ENSEMBLE delta files is stored",
+<         default="./regrid_ERA5/",
+<     )
+< 
+<     # corrected_plevs directory
+<     parser.add_argument(
+<         "-e",
+<         "--ERA5_dir",
+<         type=str,
+<         help="Directory with ERA5 input data.",
+<         default="../download_ERA5/",
+<     )
+< 
+<     # scenario difference
+<     parser.add_argument(
+<         "-s",
+<         "--scenario_diff",
+<         type=str,
+<         help="Scenario difference for the filename in the format 'scenfuture-scenpast'.",
+<         default="ssp585-hist",
+<     )
+<     
+<     # date difference
+<     parser.add_argument(
+<         "-d",
+<         "--date_diff",
+<         type=str,
+<         help="Date difference for the filename in the format 'YYYY-YYYY_YYYY-YYYY'.",
+<         default="2070-2099_1985-2014",
+<     )
+<     
+<     args = parser.parse_args()
+<     return args
+< 
+< 
+< args = parse_args()
+< ERA5_dir = args.ERA5_dir
+< CMIP6anom_dir = args.input_dir
+< scenario_str = args.scenario_diff
+< dates_str = args.date_diff
+---
+> ERA5_dir = "./"
+> CMIP6anom_dir = "./"
+82c34
+< variables = ["ta", "ua", "va", "zg", "hur"]
+---
+> variables = ["ta", "ua", "va", "zg", "hus"]
+97c49
+<             f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_{scenario_str}_{dates_str}_pinterp.nc"
+---
+>             f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc"
+100c52
+<                 f"{CMIP6anom_dir}/{varname}_CC_signal_{scenario_str}_{dates_str}.nc"
+---
+>                 f"{CMIP6anom_dir}/{varname}_CC_signal_ssp585_2070-2099_1985-2014.nc"
+107c59
+<                 f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_{scenario_str}_{dates_str}_pinterp.nc",
+---
+>                 f"{CMIP6anom_dir}/interp_plevs/{varname}_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc",
+Only in ../PGW_Simulations/3a.PGWERA5WRF: interp_plevs
+Only in ../PGW_Simulations/3a.PGWERA5WRF: .ipynb_checkpoints
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/list_CMIP6.txt ./list_CMIP6.txt
+1c1,3
+< CAS-ESM2-0
+---
+> ACCESS-CM2
+> ACCESS-ESM1-5
+> CanESM5
+3a6,9
+> CNRM-CM6-1-HR
+> CNRM-CM6-1
+> CNRM-ESM2-1
+> EC-Earth3-CC
+4a11,12
+> EC-Earth3-Veg-LR
+> EC-Earth3-Veg
+6c14,30
+< MRI-ESM2-0
+\ No newline at end of file
+---
+> GFDL-ESM4
+> GISS-E2-1-G
+> GISS-E2-1-H
+> HadGEM3-GC31-LL
+> HadGEM3-GC31-MM
+> INM-CM4-8
+> INM-CM5-0
+> IPSL-CM6A-LR
+> KACE-1-0-G
+> KIOST-ESM
+> MCM-UA-1-0
+> MIROC6
+> MIROC-ES2L
+> MPI-ESM1-2-HR
+> MPI-ESM1-2-LR
+> MRI-ESM2-0
+> UKESM1-0-LL
+diff -r ../PGW_Simulations/3a.PGWERA5WRF/outputInter.f90 ./outputInter.f90
+53,55c53,55
+< character (len=46) :: fields3d_desc(5),fields2d_desc(21)
+< character (len=25) :: fields3d_units(5),fields2d_units(21)
+< character (len=9)  :: fields3d_name(5), fields2d_name(21)
+---
+> character (len=46) :: fields3d_desc(5),fields2d_desc(7)
+> character (len=25) :: fields3d_units(5),fields2d_units(7)
+> character (len=9)  :: fields3d_name(5), fields2d_name(7)
+93,106d92
+< fields2d_name(8) = 'SST      '
+< fields2d_name(9) = 'SEAICE   '
+< fields2d_name(10) = 'SNOW     '
+< fields2d_name(11) = 'SNOWH    '
+< fields2d_name(12) = 'ST000007 '
+< fields2d_name(13) = 'ST007028 '
+< fields2d_name(14) = 'ST028100 '
+< fields2d_name(15) = 'ST100289 '
+< fields2d_name(16) = 'SM000007 '
+< fields2d_name(17) = 'SM007028 '
+< fields2d_name(18) = 'SM028100 '
+< fields2d_name(19) = 'SM100289 '
+< fields2d_name(20) = 'SOILHGT  '
+< fields2d_name(21) = 'LANDSEA  '
+115,128d100
+< fields2d_units(8) = 'K                        '
+< fields2d_units(9) = 'fraction (0 - 1)         '
+< fields2d_units(10) = 'kg m-2                   '
+< fields2d_units(11) = 'm                        '
+< fields2d_units(12) = 'K                        '
+< fields2d_units(13) = 'K                        '
+< fields2d_units(14) = 'K                        '
+< fields2d_units(15) = 'K                        '
+< fields2d_units(16) = 'm3 m-3                   '
+< fields2d_units(17) = 'm3 m-3                   '
+< fields2d_units(18) = 'm3 m-3                   '
+< fields2d_units(19) = 'm3 m-3                   '
+< fields2d_units(20) = 'm                        '
+< fields2d_units(21) = '0/1 Flag                 '
+136,150c108
+< fields2d_desc(7) = 'Surface Temperature                         '
+< fields2d_desc(8) = 'Sea-Surface Temperature                     '
+< fields2d_desc(9) = 'Sea Ice Concentration                       '
+< fields2d_desc(10) = 'Snow water content                          '
+< fields2d_desc(11) = 'Snow height                                 '
+< fields2d_desc(12) = 'Soil Temperature level 1                    '
+< fields2d_desc(13) = 'Soil Temperature level 2                    '
+< fields2d_desc(14) = 'Soil Temperature level 3                    '
+< fields2d_desc(15) = 'Soil Temperature level 4                    '
+< fields2d_desc(16) = 'Soil Moisture level 1                       '
+< fields2d_desc(17) = 'Soil Moisture level 2                       '
+< fields2d_desc(18) = 'Soil Moisture level 3                       '
+< fields2d_desc(19) = 'Soil Moisture level 4                       '
+< fields2d_desc(20) = 'Surface height                              '
+< fields2d_desc(20) = 'Land-Sea mask                               '
+---
+> fields2d_desc(7) = 'Sea-Surface Temperature                     '
+199c157
+<   !if (fields2d_name(nf).eq.'PMSL') xlvl=201300.0
+---
+>   if (fields2d_name(nf).eq.'PMSL') xlvl=201300.0
+Binary files ../PGW_Simulations/3a.PGWERA5WRF/outputInter.so and ./outputInter.so differ
+Only in ../PGW_Simulations/3a.PGWERA5WRF: ps_CC_signal_ssp245-hist_2070-2099_1985-2014.nc
+Only in ../PGW_Simulations/3a.PGWERA5WRF: ps_CC_signal_ssp585-hist_2070-2099_1985-2014.nc
+Only in ../PGW_Simulations/3a.PGWERA5WRF: psl_CC_signal_ssp245-hist_2070-2099_1985-2014.nc
+Only in ../PGW_Simulations/3a.PGWERA5WRF: psl_CC_signal_ssp585-hist_2070-2099_1985-2014.nc
+Only in ../PGW_Simulations/3a.PGWERA5WRF: __pycache__
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_CRYOWRF_mod.py
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_CRYOWRF.py
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_NoahMP.py
+Only in ../PGW_Simulations/3a.PGWERA5WRF: .write_intermediate_ERA5_CMIP6anom_NoahMP.py.swo
+Only in ../PGW_Simulations/3a.PGWERA5WRF: .write_intermediate_ERA5_CMIP6anom_NoahMP.py.swp
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_onetimestepfiles_CRYOWRF-Copy1.py
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_onetimestepfiles_CRYOWRF.py
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_onetimestepfiles_geopotseparated_CRYOWRF.py
+Only in ../PGW_Simulations/3a.PGWERA5WRF: write_intermediate_ERA5_CMIP6anom_onetimestepfiles_NoahMP.py

@@ -15,6 +15,10 @@
 #
 # Files:
 #
+# Modified by Sergi González-Herrero
+# Date: March 11 2024
+# Changes: Inclusion of parsing future and past scenario and date difference
+#
 #####################################################################
 """
 
@@ -95,12 +99,34 @@ def parse_args():
         help="Directory where the GCM ENSEMBLE delta files should be stored.",
         default="./regrid_ERA5/",
     )
+    
+    # scenario difference
+    parser.add_argument(
+        "-s",
+        "--scenario_diff",
+        type=str,
+        help="Scenario difference for the filename in the format 'scenfuture-scenpast'.",
+        default="ssp585-hist",
+    )
+
+    # date difference
+    parser.add_argument(
+        "-d",
+        "--date_diff",
+        type=str,
+        help="Date difference for the filename in the format 'YYYY-YYYY_YYYY-YYYY'.",
+        default="2070-2099_1985-2014",
+    )
+    
     args = parser.parse_args()
     return args
 
 
 args = parse_args()
 models_str = args.models
+scenario_str = args.scenario_diff
+dates_str = args.date_diff
+out_dir = args.output_dir
 
 if models_str is None:
     with open("list_CMIP6.txt") as f:
@@ -176,7 +202,7 @@ def main():
 
         fin = xr.open_mfdataset(filesin, concat_dim="model", combine="nested")
         fin_ensmean = fin.mean(dim="model").squeeze()
-        fin_ensmean.to_netcdf(f"{varname}_CC_signal_ssp585_2070-2099_1985-2014.nc")
+        fin_ensmean.to_netcdf(f"{args.output_dir}/{varname}_CC_signal_{scenario_str}_{dates_str}.nc")
 
 
 ###############################################################################
