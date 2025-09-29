@@ -10,7 +10,7 @@ Create boundary conditions from ERA5+PGW for WRF.
 
 1. Download ERA5 data using [Get_ERA5_ECMWF_plevs.py](Get_ERA5_ECMWF_plevs.py) and [Get_ERA5_ECMWF_sfc.py](Get_ERA5_ECMWF_sfc.py) scripts (you need to install and set up the cdsapi: https://cds.climate.copernicus.eu/api-how-to)
    
-2. Convert original ERA5 in GRIB into NetCDF. Use [grib2netcdf.py](grib2netcdf.py). Depending on the cdo version, the outputs may change (variable names, order of pressure levels). This can be adapted later on when merging ERA5 and CMIP6 data.
+2. Convert original ERA5 in GRIB into NetCDF. Use [grib2netcdf.py](grib2netcdf.py). 
 
 ## Download and organize CMIP6 data
 
@@ -38,17 +38,19 @@ Note: the common ERA5 grid is created from a sample era5 file using:
 
         cdo griddes era5_daily_sfc_20171130.nc > era5_grid
 
-1. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). This script may be edited to select the periods and the scenarios to be processed. It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories as arguments. Finally you can process one variable at a time by specifying it as an argument. 
+1. Edit [pgw4era_config.py](pgw4era_config.py) to adapt all the parameters to your own experiment such as directories to read and write data, years to be processed, periods and experiments to calculate the PGW climate change signal, and variables to be processed. 
+
+2. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). This script may be edited to select the periods and the scenarios to be processed. It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories as arguments. Finally you can process one variable at a time by specifying it as an argument. 
 
 Note: Some GCMs provide data up to year 2300 or 2400, which create some problems. We have removed those years and process only until 2100.
 
-2. Then, we create the definitive netCDF files with the climate change signal using [Create_CMIP6_AnnualCycleChange_ENSMEAN.py](Create_CMIP6_AnnualCycleChange_ENSMEAN.py)
+3. Then, we create the definitive netCDF files with the climate change signal using [Create_CMIP6_AnnualCycleChange_ENSMEAN.py](Create_CMIP6_AnnualCycleChange_ENSMEAN.py)
 
 or manually with cdo:
 
         cdo ensmean ts_* ts_CC_signal_ssp585_2076-2100_1990-2014.nc
 
-3. Finally, interpolate the ensemble means to ERA5 pressure levels using [Interpolate_CMIP6_Annual_cycle-CC_pinterp.py](Interpolate_CMIP6_Annual_cycle-CC_pinterp.py)
+4. Finally, interpolate the ensemble means to ERA5 pressure levels using [Interpolate_CMIP6_Annual_cycle-CC_pinterp.py](Interpolate_CMIP6_Annual_cycle-CC_pinterp.py)
 
 This script needs a sample ERA5 netcdf data to get the plevs. We created it from a grib file downloaded from ECMWF (see [Download ERA5](#download-era5)) and converted to netCDF using [grib2netcdf.py](grib2netcdf.py), from which the pressure levels are then extracted using:
 
