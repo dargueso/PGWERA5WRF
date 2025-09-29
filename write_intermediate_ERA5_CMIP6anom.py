@@ -55,6 +55,10 @@ Modified September 15 2023
 - Added the use of relative humidity from CMIP6 instead of specific humidity (Daniel Argüeso)
 - Remove dependencies with external modules (Daniel Argüeso)
 
+Modified September 29 2025
+
+- removed option parser, working with config file (Daniel Argüeso)
+- adapted to use ERA5 netcdf created with grib_to_netcdf (Daniel Argüeso)
 
 """
 
@@ -62,7 +66,6 @@ import netCDF4 as nc
 import numpy as np
 from constants import const
 import glob as glob
-from optparse import OptionParser
 import calendar
 import outputInter as f90
 import datetime as dt
@@ -71,7 +74,7 @@ import matplotlib.pyplot as plt
 import copy as cp
 import pdb
 import os
-
+import pgw4era_config as cfg
 
 def checkfile(file_out, overwrite):
     """Checks if the output file exist and whether it should be written or not"""
@@ -104,26 +107,26 @@ def calc_midmonth(year):
     midm_date = []
 
     for month in range(1, 13):
-        minit = dt.datetime(year, month, 0o1, 00)
+        minit = dt.datetime(year, month, 1, 0)
         if month == 12:
-            mend = dt.datetime(year + 1, 1, 0o1, 0o1)
+            mend = dt.datetime(year + 1, 1, 1, 1)
         else:
-            mend = dt.datetime(year, month + 1, 0o1, 0o1)
+            mend = dt.datetime(year, month + 1, 1, 1)
         tdiference = (mend - minit).total_seconds() / 2
         midm_date = midm_date + [minit + dt.timedelta(seconds=tdiference)]
 
     tdiference = (
-        dt.datetime(year, 1, 0o1, 0o1) - dt.datetime(year - 1, 12, 0o1, 0o1)
+        dt.datetime(year, 1, 1, 1) - dt.datetime(year - 1, 12, 1, 1)
     ).total_seconds() / 2
     midm_date = [
-        dt.datetime(year - 1, 12, 0o1, 0o1) + dt.timedelta(seconds=tdiference)
+        dt.datetime(year - 1, 12, 1, 1) + dt.timedelta(seconds=tdiference)
     ] + midm_date
 
     tdiference = (
-        dt.datetime(year + 1, 2, 0o1, 0o1) - dt.datetime(year + 1, 1, 0o1, 0o1)
+        dt.datetime(year + 1, 2, 1, 1) - dt.datetime(year + 1, 1, 1, 1)
     ).total_seconds() / 2
     midm_date = midm_date + [
-        dt.datetime(year + 1, 1, 0o1, 0o1) + dt.timedelta(seconds=tdiference)
+        dt.datetime(year + 1, 1, 1, 1) + dt.timedelta(seconds=tdiference)
     ]
 
     return midm_date
@@ -141,45 +144,31 @@ def calc_relhum(dewpt, t):
     return relhum
 
 
-### Options
-parser = OptionParser()
-parser.add_option(
-    "-s",
-    "--syear",
-    type="int",
-    dest="syear",
-    help="first year to process",
-    metavar="input argument",
-)
-parser.add_option(
-    "-e",
-    "--eyear",
-    type="int",
-    dest="eyear",
-    help="last year to process",
-    metavar="input argument",
-)
-
-(opts, args) = parser.parse_args()
-###
 
 overwrite_file = False
 create_figs = False
-syear = opts.syear
-eyear = opts.eyear
+syear = cfg.syear
+eyear = cfg.eyear
 nyears = eyear - syear + 1
-smonth = 1
-emonth = 1
+smonth = cfg.smonth
+emonth = cfg.emonth
 
-vars3d = ["hur", "ta", "ua", "va", "zg"]
+experiments = cfg.experiments
+year_ranges = cfg.periods
+syearp = year_ranges[0][0]
+eyearp = year_ranges[0][1]
+syearf = year_ranges[1][0]
+eyearf = year_ranges[1][1]
+
+vars3d = cfg.variables_3d
 vars3d_codes = {"hur": "r", "ta": "t", "ua": "u", "va": "v", "zg": "z"}
 # vars3d_codes={'hur':'var157','ta':'var130','ua':'var131','va':'var132','zg':'var129'}
-vars2d = ["hurs", "tas", "uas", "vas", "ps", "psl", "ts"]
+vars2d = cfg.variables_2d
 vars2d_codes = {
-    "dew": "2d",
-    "tas": "2t",
-    "uas": "10u",
-    "vas": "10v",
+    "dew": "d2m",
+    "tas": "t2m",
+    "uas": "u10",
+    "vas": "v10",
     "ps": "sp",
     "psl": "msl",
     "ts": "skt",
@@ -194,19 +183,20 @@ var_units_era5 = {
     "msl": "Pa",
     "ts": "K",
     "r": "1",
-    "10u": "m s-1",
-    "10v": "m s-1",
-    "2t": "K",
-    "2d": "K",
+    "u10": "m s-1",
+    "v10": "m s-1",
+    "t2m": "K",
+    "d2m": "K",
     "lsm": "0/1 Flag",
+    "skt": "K",
 }
 
 nfields3d = len(vars3d)
 nfields2d = len(vars2d)
 
-CMIP6anom_dir = "/home/dargueso/BDY_DATA/CMIP6"
-ERA5_dir = "/home/dargueso/BDY_DATA/ERA5/ERA5_netcdf"
-figs_path = "/home/dargueso/BDY_DATA/CMIP6/Figs"
+CMIP6anom_dir = cfg.CMIP6anom_dir
+ERA5_dir = cfg.ERA5netcdf_dir
+figs_path = cfg.figs_path
 
 plvs = [
     100000.0,
@@ -248,14 +238,16 @@ plvs = [
     100.00,
 ]
 
-nlat = 601
-nlon = 1200
+# nlat = 601
+# nlon = 1200
 
+file_ref = nc.Dataset(f"{cfg.ERA5netcdf_dir}/{cfg.ERA5_sfc_ref_file}")
+#file_ref = nc.Dataset("%s/era5_daily_sfc_20090606.nc" % (ERA5_dir), "r")
+lat = file_ref.variables["latitude"][:]
+lon = file_ref.variables["longitude"][:]
 
-file_ref = nc.Dataset("%s/era5_daily_sfc_20120101.nc" % (ERA5_dir), "r")
-lat = file_ref.variables["lat"][:]
-lon = file_ref.variables["lon"][:]
-
+nlon = len(lon)
+nlat = len(lat)
 olon, olat = np.meshgrid(lon, lat)
 
 
@@ -276,7 +268,7 @@ while year < eyear or (year == eyear and month < emonth):
     )
 
     date_init = dt.datetime(year, month, day, 00)
-    date_end = dt.datetime(year, month, day, 18)
+    date_end = dt.datetime(year, month, day, 21)
 
     time_filepl = ferapl.variables["time"]
     time_filesfc = ferasfc.variables["time"]
@@ -333,12 +325,17 @@ while year < eyear or (year == eyear and month < emonth):
 
             for var in vars3d:
                 print("Processing variable %s" % (var))
-
                 fanom = nc.Dataset(
-                    "%s/%s_CC_signal_ssp585_2070-2099_1985-2014_pinterp.nc"
-                    % (CMIP6anom_dir, var)
+                    f"{cfg.CMIP6anom_dir}/{var}_{syearp}-{eyearp}_{syearf}-{eyearf}_{experiments[0]}-{experiments[1]}_CC_signal_pinterp.nc"
                 )
-                var_era = ferapl.variables["%s" % (vars3d_codes[var])][nt, ::-1, :, :]
+                
+                if np.all(np.diff(ferapl.variables['level'][:]))>0:
+                    #Levels are from top to bottom (increasing pressure)
+                    var_era = ferapl.variables["%s" % (vars3d_codes[var])][nt, ::-1, :, :]
+                else:
+                    #Levels are from bottom to top (decreasing pressure)
+                    var_era = ferapl.variables["%s" % (vars3d_codes[var])][nt, :, :, :]
+
                 # anom_units=getattr(fanom.variables["%s" %(var)],'units')
                 ilon, ilat = np.meshgrid(
                     fanom.variables["lon"][:], fanom.variables["lat"][:]
@@ -362,7 +359,7 @@ while year < eyear or (year == eyear and month < emonth):
                     )
 
                 # Define the pseudo global warming
-                temp = var_era + np.nan_to_num(var_anom)
+                temp = var_era + np.nan_to_num(var_anom)#.filled(np.nan)
                 if var == "hur":
                     temp[temp < 0] = 0  # replace values smaller than zero by zero
                     temp[temp > 100] = 100
@@ -417,9 +414,9 @@ while year < eyear or (year == eyear and month < emonth):
                     var_era = ferasfc.variables["%s" % (vars2d_codes[var])][nt, :, :]
 
                 fanom = nc.Dataset(
-                    "%s/%s_CC_signal_ssp585_2070-2099_1985-2014.nc"
-                    % (CMIP6anom_dir, var)
+                    f"{CMIP6anom_dir}/{var}_{syearp}-{eyearp}_{syearf}-{eyearf}_{experiments[0]}-{experiments[1]}_CC_signal.nc"
                 )
+
                 # if hasattr(fanom.variables["%s" %(var)],'units'):
                 #     anom_units=getattr(fanom.variables["%s" %(var)],'units')
                 # else:
@@ -465,7 +462,7 @@ while year < eyear or (year == eyear and month < emonth):
                                 units = var_units_era5["%s" % (vars2d_codes[var])]
                         if ii == 1:
                             aa = var_anom[:]
-                            units = anom_units
+                            #units = anom_units
                         if ii == 2:
                             aa = vout[var][:]
                         figname = figs_path + "%s_%s_%s-%s-%s-%s.png" % (
@@ -478,7 +475,7 @@ while year < eyear or (year == eyear and month < emonth):
                         )
                         plt.contourf(aa)
                         plt.colorbar()
-                        plt.title(var + " [" + units + "]")
+                        #plt.title(var + " [" + units + "]")
                         plt.savefig(figname)
                         plt.close()
                         # -----------------------------------------------------------------------------------------------
