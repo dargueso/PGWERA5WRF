@@ -11,7 +11,6 @@ Created: Wed Jun 17 15:22:24 AEST 2015
 
 import netCDF4 as nc
 import numpy as np
-from constants import const
 import glob as glob
 import os
 import subprocess
@@ -29,15 +28,15 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-filepatt = "era5_daily_sfc_201712*.grb"
+filepatt = "ERA5_grb/3hr/era5_daily_*_2009060?.grb"
 files=sorted(glob.glob(filepatt))
 print(f"{bcolors.HEADER}Converting {filepatt} to netCDF{bcolors.ENDC}")
 for fin in files:
-	fout=fin.split("grb")[0]+"nc"
+	fout=os.path.basename(fin).split("grb")[0]+"nc"
 	if not os.path.exists(f"ERA5_netcdf/{fout}"):
 		try:
 			subprocess.check_output(
-    		f"cdo -f nc copy {fin} ERA5_netcdf/{fout}",
+    		f"grib_to_netcdf -o ERA5_netcdf/{fout} {fin}",
     		shell=True)
 			print(f"{bcolors.OKGREEN}Converted {fin} to netCDF{bcolors.ENDC}")
 		except Exception:
