@@ -78,11 +78,10 @@ eyearp = year_ranges[0][1]
 syearf = year_ranges[1][0]
 eyearf = year_ranges[1][1]
 
-idir = f"{cfg.CMIP6anom_dir }/regrid_ERA5"
-odir = f"{cfg.CMIP6anom_dir }/regrid_ERA5"
-cpdir = f"{cfg.CMIP6anom_dir }/corrected_plevs"
-syear_exp = {"historical": 1985, "ssp585": 2015}
-eyear_exp = {"historical": 2014, "ssp585": 2099}
+idir = f"{cfg.CMIP6anom_dir}/regrid_ERA5"
+odir = f"{cfg.CMIP6anom_dir}/regrid_ERA5"
+cpdir = f"{cfg.CMIP6anom_dir}/corrected_plevs"
+
 
 
 plvs = np.asarray(
