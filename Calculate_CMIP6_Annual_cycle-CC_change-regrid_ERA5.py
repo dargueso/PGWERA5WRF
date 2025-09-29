@@ -71,6 +71,24 @@ def parse_args():
         default="hurs,tas,ps,ts,vas,uas,psl,ta,hur,ua,va,zg",
     )
 
+    # year to start the calculation of the annual cycle
+    parser.add_argument(
+        "-s",
+        "--start_year",
+        type=int,
+        help="Year to start the calculation of the annual cycle",
+        default=1985,
+    )
+    
+    # year to end the calculation of the annual cycle
+    parser.add_argument(
+        "-e",
+        "--end_year",
+        type=int,
+        help="Year to end the calculation of the annual cycle",
+        default=2014,
+    )
+
     # input directory
     parser.add_argument(
         "-i",
@@ -88,6 +106,7 @@ def parse_args():
         help="Directory where the GCM ENSEMBLE delta files " + " should be stored.",
         default="./",
     )
+    
 
     args = parser.parse_args()
     return args
@@ -111,10 +130,11 @@ odir = args.output_dir
 experiments = ["historical", "ssp585"]
 syear_exp = {"historical": 1985, "ssp585": 2070}
 eyear_exp = {"historical": 2014, "ssp585": 2099}
-
 acycle_odir = f"{odir}/annual_cycle"
 deltas_odir = f"{odir}/deltas"
 regrid_era5 = f"{odir}/regrid_ERA5"
+
+
 
 plvs = np.asarray(
     [
