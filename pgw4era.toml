@@ -1,0 +1,58 @@
+# pgw4era.toml — example configuration file
+# Copy and edit this file, then pass it to scripts with --config /path/to/pgw4era.toml
+
+[wrf]
+# Paths
+ERA5netcdf_dir = "/data/ERA5/ERA5_netcdf/"
+ERA5_sfc_ref_file = "era5_daily_sfc_20090601.nc"
+ERA5_pl_ref_file = "./era5_plev.nc"
+CMIP6_monthly_dir = "/data/CMIP6/"
+CMIP6anom_dir = "/data/CMIP6/"
+figs_path = "/data/CMIP6/Figs"
+
+# Time range to generate boundary conditions for
+syear = 2009
+eyear = 2009
+smonth = 6
+emonth = 7
+
+# CMIP6 experiments and periods for climate change signal
+experiments = ["historical", "ssp585"]
+periods = [[2004, 2023], [2031, 2050]]
+
+# Variables
+variables_2d = ["hurs", "tas", "ps", "ts", "vas", "uas", "psl"]
+variables_3d = ["ta", "ua", "va", "zg", "hur"]
+
+# Omit 'models' to read model names from list_CMIP6.txt (default behaviour)
+# models = ["ACCESS-CM2", "MPI-ESM1-2-HR"]   # uncomment to restrict models
+
+[cryowrf]
+# Paths (same structure as wrf; adjust as needed)
+ERA5netcdf_dir = "/data/ERA5/ERA5_netcdf/"
+ERA5_sfc_ref_file = "era5_daily_sfc_20090601.nc"
+ERA5_pl_ref_file = "./era5_plev.nc"
+CMIP6_monthly_dir = "/data/CMIP6/"
+CMIP6anom_dir = "/data/CMIP6/"
+figs_path = "/data/CMIP6/Figs"
+
+# Time range to generate boundary conditions for
+syear = 2009
+eyear = 2009
+smonth = 6
+emonth = 7
+
+# CMIP6 experiments and periods for climate change signal
+experiments = ["historical", "ssp585"]
+periods = [[2004, 2023], [2031, 2050]]
+
+# Variables
+variables_2d = ["hurs", "tas", "ps", "ts", "vas", "uas", "psl"]
+variables_3d = ["ta", "ua", "va", "zg", "hur"]
+
+# Omit 'models' to read model names from list_CMIP6.txt (default behaviour)
+# models = ["ACCESS-CM2", "MPI-ESM1-2-HR"]   # uncomment to restrict models
+
+# CRYOWRF-specific options
+one_timestep_files = false   # set true to produce one output file per timestep
+noahmp = false               # set true to enable NoahMP land-surface fields
