@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pgw4era"
+version = "0.1.0"
+description = "ERA5 + CMIP6 → WRF/CRYOWRF boundary conditions for Pseudo-Global Warming experiments"
+authors = [
+    { name = "Daniel Argüeso", email = "d.argueso@uib.es" },
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "netCDF4",
+    "xarray",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "cartopy",
+    "cdsapi",
+    "tqdm",
+    "pandas",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pgw4era*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    # Third-party Python 2 helper kept for backward compat
+    "fortranfile.py",
+    # Legacy root-level scripts not yet removed
+    "Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5_periods.py",
+    "plot_map_PSFC_PGW.py",
+    "plot_map_PSFC_PGW_Med.py",
+    "plot_map_SST_PGW_Med_panel.py",
+    "plot_map_T2_PGW.py",
+    "plot_map_T2_PGW_Med.py",
+    "plot_map_T2_PGW_Med_panel.py",
+    # Standard excludes
+    ".git",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
