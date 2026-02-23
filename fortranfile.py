@@ -49,7 +49,9 @@ integers.
 __docformat__ = "restructuredtext en"
 
 import struct
+
 import numpy
+
 
 class FortranFile(file):
 
@@ -120,7 +122,7 @@ class FortranFile(file):
             else:
                 read_data = self.read(num_bytes - l)
             if read_data == '':
-                raise IOError('Could not read enough data.'
+                raise OSError('Could not read enough data.'
                               '  Wanted %d bytes, got %d.' % (num_bytes, l))
             data += read_data
 
@@ -140,7 +142,7 @@ class FortranFile(file):
         data_str = self._read_exactly(l)
         check_size = self._read_check()
         if check_size != l:
-            raise IOError('Error reading record from data file')
+            raise OSError('Error reading record from data file')
         return data_str
 
     def writeRecord(self,s):
@@ -182,17 +184,17 @@ class FortranFile(file):
             Python's struct module.  Possible values are 'd' and 'f'.
             
         """
-        
+
         _numpy_precisions = {'d': numpy.float64,
                              'f': numpy.float32
                             }
 
         if prec not in self._real_precisions:
             raise ValueError('Not an appropriate precision')
-            
+
         data_str = self.readRecord()
         num = len(data_str)/struct.calcsize(prec)
-        numbers =struct.unpack(self.ENDIAN+str(num)+prec,data_str) 
+        numbers =struct.unpack(self.ENDIAN+str(num)+prec,data_str)
         return numpy.array(numbers, dtype=_numpy_precisions[prec])
 
     def writeReals(self, reals, prec='f'):
@@ -207,7 +209,7 @@ class FortranFile(file):
         """
         if prec not in self._real_precisions:
             raise ValueError('Not an appropriate precision')
-        
+
         # Don't use writeRecord to avoid having to form a
         # string as large as the array of numbers
         length_bytes = len(reals)*struct.calcsize(prec)
@@ -216,7 +218,7 @@ class FortranFile(file):
         for r in reals:
             self.write(struct.pack(_fmt,r))
         self._write_check(length_bytes)
-    
+
     _int_precisions = 'hilq'
 
     def readInts(self, prec='i'):
@@ -232,7 +234,7 @@ class FortranFile(file):
         """
         if prec not in self._int_precisions:
             raise ValueError('Not an appropriate precision')
-            
+
         data_str = self.readRecord()
         num = len(data_str)/struct.calcsize(prec)
         return numpy.array(struct.unpack(self.ENDIAN+str(num)+prec,data_str))
@@ -249,7 +251,7 @@ class FortranFile(file):
         """
         if prec not in self._int_precisions:
             raise ValueError('Not an appropriate precision')
-        
+
         # Don't use writeRecord to avoid having to form a
         # string as large as the array of numbers
         length_bytes = len(ints)*struct.calcsize(prec)
