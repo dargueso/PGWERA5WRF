@@ -1,100 +1,247 @@
 # PGWERA5WRF
 [![DOI](https://zenodo.org/badge/691022503.svg)](https://zenodo.org/badge/latestdoi/691022503)
 
-Software to modify ERA5 files and add a large-scale climate change signal from CMIP6 ensemble. 
-Create boundary conditions from ERA5+PGW for WRF.
+Software to modify ERA5 files and add a large-scale climate change signal from CMIP6 ensemble to create WRF/CRYOWRF boundary conditions using the Pseudo-Global Warming (PGW) approach.
 
-# Instructions
+## Installation
 
-## Download ERA5
+Clone the repository and install the `pgw4era` package in editable mode (requires Python 3.10+):
 
-1. Download ERA5 data using [Get_ERA5_ECMWF_plevs.py](Get_ERA5_ECMWF_plevs.py) and [Get_ERA5_ECMWF_sfc.py](Get_ERA5_ECMWF_sfc.py) scripts (you need to install and set up the cdsapi: https://cds.climate.copernicus.eu/api-how-to)
-   
-2. Convert original ERA5 in GRIB into NetCDF. Use [grib2netcdf.py](grib2netcdf.py). 
+```bash
+git clone https://github.com/dargueso/PGWERA5WRF.git
+cd PGWERA5WRF
+pip install -e ".[dev]"
+```
 
-## Download and organize CMIP6 data
+This installs all runtime dependencies (`netCDF4`, `xarray`, `numpy`, `scipy`, `matplotlib`, `cartopy`, `cdsapi`) and development tools (`ruff`, `pytest`).
 
-In this section, we download available CMIP6 data at monthly frequency for the periods and the scenarios requested. We also organize the files into folders and check that all the variables are available for all models and over the period requested.
+## Configuration
 
-1. Data can be downloaded from [ESGF](https://esgf-node.llnl.gov/projects/esgf-llnl/), where login is required. The best option is to use Globus - the use of wget scripts is not very straight forward. You need to impose a series of conditions to get the monthly data that is required by WRF. First it must have both historical and ssp585 (or the desired scenario), then select monthly data, and finally the variables required (hus, hurs, ps, psl, ta, tas, tos, ts, ua, uas, va, vas, zg). You can also select the variant label. Check [CMIP6 Models](#cmip6-models) for a complete list of models that were downloaded. 
+Copy the example configuration file and adapt it to your experiment:
 
- - Only monthly means are needed ("Amon")
-  - Required var:
-    * 3D: ta, ua, va, zg, hur
-    * 2D: uas, vas, tas, ts, hurs,ps, psl
+```bash
+cp pgw4era.toml my_experiment.toml
+```
 
+Edit `my_experiment.toml` and adjust the following settings under the `[wrf]` or `[cryowrf]` profile:
 
-2. Once the data is downloaded, it must be organized into folders. We initially organized them into two folders: historical and ssp585. Within those two folders, they are organized into directories for each variable. Finally, the files are distributed in folders for each model (ej: $WORKDIR/historical/va/ACCESS-CM2). All variables files are inside as downloaded from ESGF. An example on how to organize files this way is provided here: [reorganize_CMIP6_folders.py](reorganize_CMIP6_folders.py)
+| Key | Description |
+|-----|-------------|
+| `ERA5netcdf_dir` | Directory containing ERA5 NetCDF files |
+| `ERA5_sfc_ref_file` | ERA5 surface reference file (for grid info) |
+| `ERA5_pl_ref_file` | ERA5 pressure-level reference file |
+| `CMIP6_monthly_dir` | Root directory for raw CMIP6 monthly data |
+| `CMIP6anom_dir` | Directory for computed CMIP6 anomaly files |
+| `figs_path` | Output directory for diagnostic figures |
+| `syear` / `eyear` | Start/end year for boundary conditions |
+| `smonth` / `emonth` | Start/end month for boundary conditions |
+| `experiments` | CMIP6 experiments, e.g. `["historical", "ssp585"]` |
+| `periods` | Year ranges for each experiment, e.g. `[[2004, 2023], [2031, 2050]]` |
+| `variables_2d` | 2-D CMIP6 variable names to process |
+| `variables_3d` | 3-D CMIP6 variable names to process |
 
-3. Check that all models has a complete set of data ready for PGW processing using [check_completeness_CMIP6_PGW.py](check_completeness_CMIP6_PGW.py)
+To restrict processing to specific CMIP6 models, add:
 
-4. Create a list of the models to process. For example within historical and any of the variable folders: `ls -d *>list_CMIP6.txt`
+```toml
+models = ["ACCESS-CM2", "MPI-ESM1-2-HR"]
+```
 
-## Create monthly annual cycles and CC from CMIP6 models, interpolate to ERA5 grid and to pressure levels.
+Otherwise, model names are read from `list_CMIP6.txt` (default).
 
-In this section, we calculate means for every calendar months to create files with an "annual cycle" (also called "seasonal cycles"). Then we will make the difference between future and present files for the requested periods to calculate the climate change signal (delta) for every GCM, variable and calendar month. We will create the corresponding netCDF files (one for each GCM and variable). Finally, we will interpolate these netCDF files from the original GCM grid to a common ERA5 grid ([era5_grid](era5_grid)) and to ERA5 pressure levels so that they can be merged together and added to ERA5.
+### CRYOWRF-specific options
 
-Note: the common ERA5 grid is created from a sample era5 file using:
+The `[cryowrf]` profile additionally supports:
 
-        cdo griddes era5_daily_sfc_20171130.nc > era5_grid
+| Key | Default | Description |
+|-----|---------|-------------|
+| `one_timestep_files` | `false` | Write one output file per timestep instead of one per day |
+| `noahmp` | `false` | Enable NoahMP land-surface fields |
 
-1. Edit [pgw4era_config.py](pgw4era_config.py) to adapt all the parameters to your own experiment such as directories to read and write data, years to be processed, periods and experiments to calculate the PGW climate change signal, and variables to be processed. 
+## Fortran Module Compilation
 
-2. Calculate the annual cycles, calculate the climate change signal (deltas) and interpolate to era5 grid for each model and varaible using [Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py](Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py). This script may be edited to select the periods and the scenarios to be processed. It also let you select the models to be processed or use the list_CMIP.txt created above (default). It also takes input and output directories as arguments. Finally you can process one variable at a time by specifying it as an argument. 
+The WRF intermediate file writer is implemented in Fortran and must be compiled with `f2py` before running `scripts/run_pgw.py`.
 
-Note: Some GCMs provide data up to year 2300 or 2400, which create some problems. We have removed those years and process only until 2100.
+**WRF profile:**
 
-3. Then, we create the definitive netCDF files with the climate change signal using [Create_CMIP6_AnnualCycleChange_ENSMEAN.py](Create_CMIP6_AnnualCycleChange_ENSMEAN.py)
+```bash
+cd pgw4era/wrf
+f2py -c outputInter.f90 -m outputInter -DF2PY_REPORT_ON_ARRAY_COPY=1000000
+```
 
-or manually with cdo:
+**CRYOWRF profile:**
 
-        cdo ensmean ts_* ts_CC_signal_ssp585_2076-2100_1990-2014.nc
+```bash
+cd pgw4era/cryowrf
+f2py -c outputInter_CRYOWRF.f90 -m outputInter_CRYOWRF -DF2PY_REPORT_ON_ARRAY_COPY=1000000
+```
 
-4. Finally, interpolate the ensemble means to ERA5 pressure levels using [Interpolate_CMIP6_Annual_cycle-CC_pinterp.py](Interpolate_CMIP6_Annual_cycle-CC_pinterp.py)
+On some systems the compiled module will have a version-specific suffix (e.g. `outputInter.cpython-311-x86_64-linux-gnu.so`). Rename it to `outputInter.so` / `outputInter_CRYOWRF.so` if needed.
 
-This script needs a sample ERA5 netcdf data to get the plevs. We created it from a grib file downloaded from ECMWF (see [Download ERA5](#download-era5)) and converted to netCDF using [grib2netcdf.py](grib2netcdf.py), from which the pressure levels are then extracted using:
+## Full Workflow
 
-        ncks -v plev era5_daily_pl_20120101.nc era5_plev.nc
+Follow these steps in order to produce PGW WRF/CRYOWRF boundary conditions.
 
-The resulting file is provided here [era5_plev.nc](era5_plev.nc)
+### Step 1 — Download ERA5
 
-## Merge ERA5 and CMIP5 anomalies into single WRF-intermediate files
+1. Install and configure the CDS API: <https://cds.climate.copernicus.eu/api-how-to>
 
-In this section we combine ERA5 data and the CMIP6 Climate Change Signal to create the PGW WRF-intermediate files. We use a fortran routine from Python to write the FORTRAN WRF-intermediate files.  
+2. Download ERA5 pressure-level and surface data:
 
-1. We need to convert the Fortran routine [outputInter.f90](outputInter.f90) to a Python module using f2py:
+   ```bash
+   python scripts/Get_ERA5_ECMWF_plevs.py --config my_experiment.toml
+   python scripts/Get_ERA5_ECMWF_sfc.py   --config my_experiment.toml
+   ```
 
-        f2py -c -m outputInter outputInter.f90 -DF2PY_REPORT_ON_ARRAY_COPY=1000000
-2. Rename mv outputInter.[cpython-37m-x86_64-linux-gnu].so to outputInter.so
+3. Convert ERA5 GRIB files to NetCDF:
 
-3. Run [write_intermediate_ERA5_CMIP6anom.py](write_intermediate_ERA5_CMIP6anom.py) which makes use of [outputInter.f90](outputInter.f90) (as a python module), [constanst.py](constanst.py). It basically interpolates CMIP6 anomalies to every 3 or 6 hours (from monthly) and builds the WRF-Intermediate adding CMIP6 anomalies to ERA5 fields (ERA5 netcdf files are needed - see [Download ERA5](#download-era5) to see how to create them). Depending on CDO version variables in the ERA5 netCDF files may have names or codes, modify the vars2d_codes and vars3d_codes accordingly. Currently working with names.
+   ```bash
+   python scripts/grib2netcdf.py --config my_experiment.toml
+   ```
 
-## Create soil variables
+### Step 2 — Download and Prepare CMIP6 Data
 
-We need to create a climatology with soil variables to initialize. Most GCMs do not write out soil variables, but WRF with Land Surface Model needs them. 
+1. Download monthly CMIP6 data from [ESGF](https://esgf-node.llnl.gov/projects/esgf-llnl/) (login required). The recommended method is Globus. Required variables:
+   - 3-D (`Amon`): `ta`, `ua`, `va`, `zg`, `hur`
+   - 2-D (`Amon`): `uas`, `vas`, `tas`, `ts`, `hurs`, `ps`, `psl`
 
-1. Create a climatology from ERA5 data. Assuming our simulations start in December, we create a climatology for that month.
+   Only monthly means (`Amon` frequency) are required. Some models provide data beyond 2100; these extra years can cause issues and should be trimmed.
 
-        cdo ensmean era5_daily_sfc_20??12??.grb soil_clim_dec.grb
+2. Organize downloaded files into the expected folder structure (`<experiment>/<variable>/<model>/`):
 
-Then go to WPS (tested 4.4.2)
+   ```bash
+   python scripts/reorganize_CMIP6_folders.py --config my_experiment.toml
+   ```
 
-        ./link_grib.csh ~/BDY_DATA/ERA5/soil_clim_dec.grb 
+3. Verify that all models have a complete set of variables:
 
-Use the namelist [namelist_soilera5_cmip6_pgw.wps](namelist_soilera5_cmip6_pgw.wps) where we need to adapt the dates depending on the dates of the soil_clim_dec.grb, which will depend on the files we used to generate the mean.
+   ```bash
+   python scripts/check_completeness_CMIP6_PGW.py --config my_experiment.toml
+   ```
 
-        mv namelist_soilera5_cmip6_pgw.wps namelist.wps
-        ln -sf Vtable.ERA5.SOIL1ststep Vtable
-        ./ungrib.exe
+4. Create a model list file (run inside any variable folder within the `historical` experiment directory):
 
-This will generate a file SOILERA5:2005-12-01_00 (this will be the date if your first file in the climatology is for 01/12/2005). This file can be used as a constant.
+   ```bash
+   ls -d * > list_CMIP6.txt
+   ```
 
-When running your metgrid, you need to include 'SOILERA5:2005-12-01_00' in your namelist.wps as constants_name = 'SOILERA5:2005-12-01_00' in the &metgrid section. We also may need to use the modified METGRID.TBL [METGRID.TBL.ARW_PGW](METGRID.TBL.ARW_PGW), although this depends on how we decide to interpolate variables masked with LANDMASK.
-There is a module in real/wrf that should be changed too [module_initialize_real.F](module_initialize_real.F)->[module_initialize_real.F_modified](module_initialize_real.F_modified), so that the model only uses soil variables for initialization and ignores the rest (not sure this is entirely necessary, but it is if only the first step is provided.)
+### Step 3 — Compute CMIP6 Climate Change Signal
 
+This stage calculates monthly climatologies (annual cycles), computes the climate change delta between future and present periods, regrids to the ERA5 grid, and interpolates to ERA5 pressure levels.
 
+1. Create the ERA5 grid description file (if not already present):
 
-# CMIP6 Models
+   ```bash
+   cdo griddes era5_daily_sfc_YYYYMMDD.nc > era5_grid
+   ```
+
+2. Calculate per-model annual cycles, climate change signal, and regrid to ERA5 grid:
+
+   ```bash
+   python scripts/Calculate_CMIP6_Annual_cycle-CC_change-regrid_ERA5.py \
+       --config my_experiment.toml
+   ```
+
+3. Compute the multi-model ensemble mean climate change signal:
+
+   ```bash
+   python scripts/Create_CMIP6_AnnualCycleChange_ENSMEAN.py \
+       --config my_experiment.toml
+   ```
+
+   Alternatively, using CDO directly:
+
+   ```bash
+   cdo ensmean ts_* ts_CC_signal_ssp585_2076-2100_1990-2014.nc
+   ```
+
+4. Interpolate ensemble means to ERA5 pressure levels:
+
+   ```bash
+   python scripts/Interpolate_CMIP6_Annual_cycle-CC_pinterp.py \
+       --config my_experiment.toml
+   ```
+
+   This step requires a pressure-level reference file. Create it from any ERA5 pressure-level NetCDF:
+
+   ```bash
+   ncks -v plev era5_daily_pl_YYYYMMDD.nc era5_plev.nc
+   ```
+
+   The resulting `era5_plev.nc` is provided in the repository as a sample.
+
+### Step 4 — Write WRF Intermediate Files
+
+Run the unified entry point, choosing `wrf` or `cryowrf` as the profile:
+
+```bash
+# Standard WRF (7 surface fields)
+python scripts/run_pgw.py --config my_experiment.toml --profile wrf
+
+# CRYOWRF (same fields + SNOW and SNOWH)
+python scripts/run_pgw.py --config my_experiment.toml --profile cryowrf
+```
+
+Pass `--overwrite` to regenerate existing output files. The CRYOWRF profile adds two snow fields to each output file:
+- `SNOW` — snow water equivalent (kg m⁻²)
+- `SNOWH` — physical snow depth (m)
+
+### Step 5 — Create Soil Variables (optional)
+
+WRF with a land-surface model requires soil variable initialization. Create a soil climatology from ERA5 data (example for December):
+
+```bash
+cdo ensmean era5_daily_sfc_20??12??.grb soil_clim_dec.grb
+```
+
+Then in WPS:
+
+```bash
+./link_grib.csh ~/BDY_DATA/ERA5/soil_clim_dec.grb
+mv namelist_soilera5_cmip6_pgw.wps namelist.wps
+ln -sf Vtable.ERA5.SOIL1ststep Vtable
+./ungrib.exe
+```
+
+Include the resulting `SOILERA5:YYYY-MM-DD_HH` file as a constant in `namelist.wps`:
+
+```
+&metgrid
+ constants_name = 'SOILERA5:2005-12-01_00'
+```
+
+You may also need the modified METGRID table `METGRID.TBL.ARW_PGW` and the patched `module_initialize_real.F` for correct soil variable handling.
+
+## Output Verification
+
+To verify that the refactored package produces bit-identical results to the original scripts, compare two sets of WRF intermediate output files:
+
+```bash
+python scripts/compare_wrf_output.py \
+    --ref /path/to/old/output \
+    --new /path/to/new/output
+```
+
+To compare WRF and CRYOWRF outputs for the same simulation period (the 7 shared fields should be identical; the 2 CRYOWRF-only fields are reported separately):
+
+```bash
+python scripts/compare_wrf_cryowrf_output.py \
+    --wrf /path/to/wrf/output \
+    --cryowrf /path/to/cryowrf/output
+```
+
+## Development
+
+Run the linter and test suite:
+
+```bash
+ruff check .
+ruff format --check .
+pytest
+```
+
+CI runs automatically on every push and pull request to `main` via GitHub Actions.
+
+## CMIP6 Models
 
 | Global Model     | Downloaded | Completeness | Scenarios          | Exp (realization) |
 | ---------------- | ---------- | ------------ | ------------------ | ----------------- |
@@ -129,6 +276,6 @@ There is a module in real/wrf that should be changed too [module_initialize_real
 | MRI-ESM2-0       | Downloaded | Complete     | historical, ssp585 | r1i1p1f1          |
 | UKESM1-0-LL      | Downloaded | Complete     | historical, ssp585 | r1i1p1f2          |
 
-# Authors
+## Authors
 
 * [Daniel Argueso](https://github.com/dargueso): Universitat de les Illes Balears
