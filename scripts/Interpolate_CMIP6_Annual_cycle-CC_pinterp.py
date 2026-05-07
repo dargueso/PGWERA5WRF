@@ -46,6 +46,7 @@ def main() -> None:
 
     ERA5_pl_ref_file = cfg.ERA5_pl_ref_file
     CMIP6anom_dir = cfg.CMIP6anom_dir
+    ensemble_dir = cfg.CMIP6ensemble_dir or CMIP6anom_dir
     variables = cfg.variables_3d
     experiments = cfg.experiments
     year_ranges = cfg.periods
@@ -55,7 +56,7 @@ def main() -> None:
     era5_ref = xr.open_dataset(ERA5_pl_ref_file)
     era5_plev = era5_ref.plev.values
 
-    interp_dir = f"{CMIP6anom_dir}/interp_plevs"
+    interp_dir = f"{ensemble_dir}/interp_plevs"
     os.makedirs(interp_dir, exist_ok=True)
 
     ctime_i = checkpoint(0)
@@ -68,7 +69,7 @@ def main() -> None:
         )
         if not os.path.exists(out_file):
             fin = xr.open_dataset(
-                f"{CMIP6anom_dir}/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}"
+                f"{ensemble_dir}/{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}"
                 f"_{'-'.join(experiments)}_CC_signal.nc"
             )
             fin.reindex(plev=fin.plev[::-1])

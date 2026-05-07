@@ -12,6 +12,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import os
 from glob import glob
 from pathlib import Path
 
@@ -73,6 +74,9 @@ def main() -> None:
     idir = f"{cfg.CMIP6anom_dir}/regrid_ERA5"
     odir = f"{cfg.CMIP6anom_dir}/regrid_ERA5"
     cpdir = f"{cfg.CMIP6anom_dir}/corrected_plevs"
+    ensemble_odir = cfg.CMIP6ensemble_dir
+    if ensemble_odir:
+        Path(ensemble_odir).mkdir(exist_ok=True, parents=True)
 
     plvs = np.asarray(
         [
@@ -139,15 +143,22 @@ def main() -> None:
         if "areacella" in fin.variables:
             fin = fin.drop_vars("areacella")
 
-        fin.to_netcdf(
+        allmodels_fname = (
             f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}"
             f"_{'-'.join(experiments)}_CC_signal_allmodels.nc"
         )
+        ensmean_fname = (
+            f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}"
+            f"_{'-'.join(experiments)}_CC_signal.nc"
+        )
+        if ensemble_odir:
+            allmodels_fname = os.path.join(ensemble_odir, allmodels_fname)
+            ensmean_fname = os.path.join(ensemble_odir, ensmean_fname)
+
+        fin.to_netcdf(allmodels_fname)
 
         fin_ensmean = mean_with_missing_threshold(fin, dim="model", threshold=1).squeeze()
-        fin_ensmean.to_netcdf(
-            f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal.nc"
-        )
+        fin_ensmean.to_netcdf(ensmean_fname)
 
 
 if __name__ == "__main__":

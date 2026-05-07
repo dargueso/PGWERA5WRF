@@ -82,7 +82,15 @@ def load_config(path: str | Path, profile: str) -> SimpleNamespace:
 
     # Derived helpers
     cfg.setdefault("models", None)
+    cfg.setdefault("vars2d_invarERA5", [])
     cfg.setdefault("figs_path", None)
+    cfg.setdefault("CMIP6ensemble_dir", None)
+    cfg.setdefault("output_dir", None)
+    cfg.setdefault("sday", 1)
+    cfg.setdefault("eday", None)
+    cfg.setdefault("ERA5_pl_pattern", "era5_daily_pl_%Y%m%d.nc")
+    cfg.setdefault("ERA5_sfc_pattern", "era5_daily_sfc_%Y%m%d.nc")
+    cfg.setdefault("reverse", False)
     cfg["variables_all"] = cfg["variables_2d"] + cfg["variables_3d"]
     periods = cfg["periods"]
     cfg["syearp"] = periods[0][0]
