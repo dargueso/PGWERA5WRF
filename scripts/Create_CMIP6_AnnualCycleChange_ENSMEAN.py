@@ -148,8 +148,7 @@ def main() -> None:
             f"_{'-'.join(experiments)}_CC_signal_allmodels.nc"
         )
         ensmean_fname = (
-            f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}"
-            f"_{'-'.join(experiments)}_CC_signal.nc"
+            f"{varname}_{syearp}-{eyearp}_{syearf}-{eyearf}_{'-'.join(experiments)}_CC_signal.nc"
         )
         if ensemble_odir:
             allmodels_fname = os.path.join(ensemble_odir, allmodels_fname)

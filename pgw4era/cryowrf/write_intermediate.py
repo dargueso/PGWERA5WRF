@@ -56,16 +56,16 @@ except ImportError as exc:
 VARS3D_CODES: dict[str, str] = {"hur": "r", "ta": "t", "ua": "u", "va": "v", "zg": "z"}
 # ERA5 variable names for soil/terrain/mask fields written without PGW anomaly
 VARS2D_INVAR_CODES: dict[str, str] = {
-    "stl1": "stl1",   # soil temperature 0-7 cm   → ST000007
-    "stl2": "stl2",   # soil temperature 7-28 cm  → ST007028
-    "stl3": "stl3",   # soil temperature 28-100 cm → ST028100
-    "stl4": "stl4",   # soil temperature 100-289 cm → ST100289
-    "swvl1": "swvl1", # soil moisture 0-7 cm      → SM000007
-    "swvl2": "swvl2", # soil moisture 7-28 cm     → SM007028
-    "swvl3": "swvl3", # soil moisture 28-100 cm   → SM028100
-    "swvl4": "swvl4", # soil moisture 100-289 cm  → SM100289
-    "z": "z",         # surface geopotential ÷ 9.81 → SOILHGT (m)
-    "lsm": "lsm",     # land-sea mask              → LANDSEA
+    "stl1": "stl1",  # soil temperature 0-7 cm   → ST000007
+    "stl2": "stl2",  # soil temperature 7-28 cm  → ST007028
+    "stl3": "stl3",  # soil temperature 28-100 cm → ST028100
+    "stl4": "stl4",  # soil temperature 100-289 cm → ST100289
+    "swvl1": "swvl1",  # soil moisture 0-7 cm      → SM000007
+    "swvl2": "swvl2",  # soil moisture 7-28 cm     → SM007028
+    "swvl3": "swvl3",  # soil moisture 28-100 cm   → SM028100
+    "swvl4": "swvl4",  # soil moisture 100-289 cm  → SM100289
+    "z": "z",  # surface geopotential ÷ 9.81 → SOILHGT (m)
+    "lsm": "lsm",  # land-sea mask              → LANDSEA
 }
 
 VARS2D_CODES: dict[str, str] = {
@@ -240,7 +240,6 @@ def run(cfg: SimpleNamespace, overwrite_file: bool = False, create_figs: bool = 
             file_out = "ERA5:" + filedate.split("_")[0] + "_" + filedate.split("_")[1].split("-")[0]
             filewrite = checkfile(file_out, overwrite_file)
             if filewrite:
-
                 tdelta = np.asarray(
                     [(midmonth[i] - proc_date).total_seconds() for i in range(len(midmonth))]
                 )
@@ -312,7 +311,9 @@ def run(cfg: SimpleNamespace, overwrite_file: bool = False, create_figs: bool = 
                             + (var_anom_2 - var_anom_1) * tdelta_before / tdelta_mid_month
                         )
 
-                    result = np.array(var_era, dtype="float64") + np.nan_to_num(_anom_sign * var_anom)
+                    result = np.array(var_era, dtype="float64") + np.nan_to_num(
+                        _anom_sign * var_anom
+                    )
 
                     if var == "siconc":
                         result = np.clip(result, 0.0, 100.0)
