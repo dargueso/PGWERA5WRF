@@ -75,7 +75,7 @@ def calculate_annual_cycle(GCM, varname, experiments, syear, eyear, idir, odir):
     if not os.path.isfile(ofname):
         import pandas as pd
 
-        fin_p = finall.sel(time=slice(str(syear), str(eyear)))
+        fin_p = finall.sortby("time").sel(time=slice(str(syear), str(eyear)))
         avail_dates = pd.to_datetime(fin_p.time.values)
         year_months = {(d.year, d.month) for d in avail_dates}
         all_months = {(y, m) for y in range(syear, eyear + 1) for m in range(1, 13)}

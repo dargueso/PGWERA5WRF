@@ -10,7 +10,7 @@ authors = [
     { name = "Daniel Argüeso", email = "d.argueso@uib.es" },
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "netCDF4",
     "xarray",

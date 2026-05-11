@@ -95,7 +95,7 @@ Follow these steps in order to produce PGW WRF/CRYOWRF boundary conditions.
 3. Convert ERA5 GRIB files to NetCDF:
 
    ```bash
-   python scripts/grib2netcdf.py --config my_experiment.toml
+   python scripts/grib2netcdf.py --config my_experiment.toml --profile wrf
    ```
 
 ### Step 2 — Download and Prepare CMIP6 Data

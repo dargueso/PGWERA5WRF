@@ -3,11 +3,14 @@
 
 [wrf]
 # Paths
+# grib_input_pattern = "ERA5_grb/3hr/era5_daily_*_2009060?.grb"  # glob for grib2netcdf.py
+# grib_output_dir    = "ERA5_netcdf"                              # output dir for grib2netcdf.py
 ERA5netcdf_dir = "/data/ERA5/ERA5_netcdf/"
 ERA5_sfc_ref_file = "era5_daily_sfc_20090601.nc"
 ERA5_pl_ref_file = "./era5_plev.nc"
 CMIP6_monthly_dir = "/data/CMIP6/"
 CMIP6anom_dir = "/data/CMIP6/"
+# CMIP6ensemble_dir = "/data/CMIP6/ensemble_mean"  # output dir for Create_CMIP6_AnnualCycleChange_ENSMEAN.py (default: current working dir)
 figs_path = "/data/CMIP6/Figs"
 
 # Time range to generate boundary conditions for
@@ -29,6 +32,8 @@ variables_3d = ["ta", "ua", "va", "zg", "hur"]
 
 [cryowrf]
 # Paths (same structure as wrf; adjust as needed)
+# grib_input_pattern = "ERA5_grb/3hr/era5_daily_*_2009060?.grb"  # glob for grib2netcdf.py
+# grib_output_dir    = "ERA5_netcdf"                              # output dir for grib2netcdf.py
 ERA5netcdf_dir = "/data/ERA5/ERA5_netcdf/"
 ERA5_sfc_ref_file = "era5_daily_sfc_20090601.nc"
 ERA5_pl_ref_file = "./era5_plev.nc"
@@ -56,3 +61,8 @@ variables_3d = ["ta", "ua", "va", "zg", "hur"]
 # CRYOWRF-specific options
 one_timestep_files = false   # set true to produce one output file per timestep
 noahmp = false               # set true to enable NoahMP land-surface fields
+# output_dir = "/path/to/output"  # directory for WRF intermediate files (default: current dir)
+# sday = 1    # start day within smonth (default: 1)
+# eday = 30   # end day within emonth (default: last day of emonth)
+# ERA5_pl_pattern  = "era5_daily_pl_%Y%m%d.nc"   # strftime pattern for pressure-level files
+# ERA5_sfc_pattern = "era5_daily_sfc_%Y%m%d.nc"  # strftime pattern for surface files

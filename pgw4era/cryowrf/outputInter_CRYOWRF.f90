@@ -50,9 +50,9 @@ character (len=9) :: field ! Name of the field
 character (len=24) :: hdate ! Valid date for data YYYY:MM:DD_HH:00:00
 character (len=25) :: units ! Units of data
 character (len=46) :: desc ! Short description of data
-character (len=46) :: fields3d_desc(5),fields2d_desc(9)
-character (len=25) :: fields3d_units(5),fields2d_units(9)
-character (len=9)  :: fields3d_name(5), fields2d_name(9)
+character (len=46) :: fields3d_desc(5),fields2d_desc(21)
+character (len=25) :: fields3d_units(5),fields2d_units(21)
+character (len=9)  :: fields3d_name(5), fields2d_name(21)
 
 
 integer :: ounit !output file
@@ -92,6 +92,18 @@ fields2d_name(6) = 'TT       '
 fields2d_name(7) = 'SKINTEMP '
 fields2d_name(8) = 'SNOW     '
 fields2d_name(9) = 'SNOWH    '
+fields2d_name(10) = 'SST      '
+fields2d_name(11) = 'SEAICE   '
+fields2d_name(12) = 'ST000007 '
+fields2d_name(13) = 'ST007028 '
+fields2d_name(14) = 'ST028100 '
+fields2d_name(15) = 'ST100289 '
+fields2d_name(16) = 'SM000007 '
+fields2d_name(17) = 'SM007028 '
+fields2d_name(18) = 'SM028100 '
+fields2d_name(19) = 'SM100289 '
+fields2d_name(20) = 'SOILHGT  '
+fields2d_name(21) = 'LANDSEA  '
 
 fields2d_units(1) = 'm s-1                    '
 fields2d_units(2) = 'm s-1                    '
@@ -102,6 +114,18 @@ fields2d_units(6) = 'K                        '
 fields2d_units(7) = 'K                        '
 fields2d_units(8) = 'kg m-2                   '
 fields2d_units(9) = 'm                        '
+fields2d_units(10) = 'K                        '
+fields2d_units(11) = 'fraction (0 - 1)         '
+fields2d_units(12) = 'K                        '
+fields2d_units(13) = 'K                        '
+fields2d_units(14) = 'K                        '
+fields2d_units(15) = 'K                        '
+fields2d_units(16) = 'm3 m-3                   '
+fields2d_units(17) = 'm3 m-3                   '
+fields2d_units(18) = 'm3 m-3                   '
+fields2d_units(19) = 'm3 m-3                   '
+fields2d_units(20) = 'm                        '
+fields2d_units(21) = '0/1 Flag                 '
 
 fields2d_desc(1) = 'U                                           '
 fields2d_desc(2) = 'V                                           '
@@ -109,9 +133,21 @@ fields2d_desc(3) = 'Relative Humidity                           '
 fields2d_desc(4) = 'Surface Pressure                            '
 fields2d_desc(5) = 'Sea-level pressure                          '
 fields2d_desc(6) = 'Temperature                                 '
-fields2d_desc(7) = 'Sea-Surface Temperature                     '
+fields2d_desc(7) = 'Surface Temperature                         '
 fields2d_desc(8) = 'Water equivalent snow depth                 '
 fields2d_desc(9) = 'Physical snow depth                         '
+fields2d_desc(10) = 'Sea-Surface Temperature                     '
+fields2d_desc(11) = 'Sea Ice Concentration                       '
+fields2d_desc(12) = 'Soil Temperature level 1                    '
+fields2d_desc(13) = 'Soil Temperature level 2                    '
+fields2d_desc(14) = 'Soil Temperature level 3                    '
+fields2d_desc(15) = 'Soil Temperature level 4                    '
+fields2d_desc(16) = 'Soil Moisture level 1                       '
+fields2d_desc(17) = 'Soil Moisture level 2                       '
+fields2d_desc(18) = 'Soil Moisture level 3                       '
+fields2d_desc(19) = 'Soil Moisture level 4                       '
+fields2d_desc(20) = 'Surface height                              '
+fields2d_desc(21) = 'Land-Sea mask                               '
 
 
 
@@ -160,7 +196,6 @@ end do
 do nf = 1,nfields2d
 
   xlvl = 200100.0
-  if (fields2d_name(nf).eq.'PMSL') xlvl=201300.0
   field = fields2d_name(nf)
   units = fields2d_units(nf)
   desc  = fields2d_desc(nf)
