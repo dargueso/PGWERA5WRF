@@ -19,10 +19,9 @@ import datetime as dt
 import os
 from types import SimpleNamespace
 
-import xarray as xr
-
 import netCDF4 as nc
 import numpy as np
+import xarray as xr
 
 from pgw4era.constants import const
 

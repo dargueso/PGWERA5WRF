@@ -23,13 +23,12 @@ import calendar
 import datetime as dt
 import os
 import sys
-
-import xarray as xr
 from pathlib import Path
 from types import SimpleNamespace
 
 import netCDF4 as nc
 import numpy as np
+import xarray as xr
 
 from pgw4era.constants import const
 from pgw4era.utils import calc_midmonth, calc_relhum, checkfile
